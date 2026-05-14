@@ -8,7 +8,7 @@
  * -Rascall
  * Cuantifica con Salmon.
  * 
- * Expresion Custer genera clusters, matriz de TPMs y log2TPM
+ * Expresion Cluster genera clusters, matriz de TPMs y log2TPM
  */
 nextflow.enable.dsl=2
 
@@ -39,14 +39,24 @@ workflow {
   				.splitCsv(header: true, sep: '\t')
   				.map { sample -> [sample["Sample"], file(sample["R1"]), file(sample["R2"])]}
   
+   // First quality check out
+  FastQC(fqs_ch, "beforeTrimm")
+
+
+  // MultiQC for unfiltered reads
+  MultiQC(FastQC.out.qc.collect(), params.reportsDir+"/beforeTrimm")
+
+   // Adaptors elimination and qualiy filtering
+  Fastp(fqs_ch)
+
+  // Quality check out after trimming
+  FastQC(Fastp.out.reads, "afterTrimm")
+
   // Salmon cuantifica las muestras.
   Salmon(params.referenceDir,fqs_ch)
 
   // "salmon_ch" espera a obtener todos los resultados antes que "PreExprCluster" los reciba.
   salmon_ch = Salmon.out.sf.collect()
-
-  // PreExprCluster une la matriz de tpms de exprDir con la de las muestras a procesar
-  // PreExprCluster(salmon_ch, params.ensg_enst_table, params.exprDir)
 
   // ExprClusters fenera la matriz de expresion
   ExprClusters(params.runSampleSheet, salmon_ch, params.ensg_enst_table, params.exprDir)
@@ -90,4 +100,12 @@ workflow {
   ExprClusters.out.clusters.view()  
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall. 
   FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters,params.method_counts,params.supporting_reads)
+
+    // MultiQC for Fastp+Fastp+Salmon+STAR
+  reports_ch = FastQC.out.qc.collect().concat(Fastp.out.reads.collect())
+                                      .concat(Salmon.out.quant.collect())
+                                      .concat(STAR_aligner.out.BAM.collect()).collect()
+
+  MultiQC(reports_ch, params.reportsDir+"/afterTrimm")
+
 }
