@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 # Build the image: docker build -t ariel-env .
 
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     automake \
     build-essential \
@@ -85,8 +85,7 @@ RUN curl -L https://github.com/COMBINE-lab/salmon/releases/download/v1.9.0/salmo
 ##### QC #####
 
 # fastp - control de calidad de lecturas FASTQ
-RUN wget -qO /usr/local/bin/fastp https://github.com/OpenGene/fastp/releases/download/v0.23.4/fastp && \
-    chmod +x /usr/local/bin/fastp
+RUN apt-get install -y fastp
 
 # MultiQC - reporte agregado de calidad
 RUN apt-get install -y python3-pip && \
