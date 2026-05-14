@@ -61,7 +61,7 @@ process ExprClusters {
    *                        ---- ExprClusters ----
    * 
    * ExprClusters agrupa muestras en clusters de acuerdo con su expresion y genera graficos
-   * para su visualizacion. Utiliza el contenedor de Docker 'ball_classifier'.
+   * para su visualizacion. Utiliza el contenedor de Docker 'ariel-env'.
    *
    *  Input:
    *	- runSampleSheet (path): Directorio con las rutas de las muestras.
@@ -80,7 +80,7 @@ process ExprClusters {
   publishDir params.resultsDir+"/ExprClusters", mode: 'copy'
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*png"
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*cluster*"
-  container 'ball_classifier_pruebas'
+  container 'ariel-env'
 
   input:
     path runSampleSheet
@@ -181,7 +181,7 @@ process Fungi {
   * Primero analiza los reportes de Arriba, FusionCatcher y Cicero, y despues hace un
   * consenso.
   * Utiliza los scripts fungi-fusion-analyzer y fungi-fusion-consensus de Fungi instalado
-  * en el contenedor de Docker ball_classifier.
+  * en el contenedor de Docker ariel-env.
   * 
   *
   * Input:
@@ -220,12 +220,12 @@ process Fungi {
 
     # analisis de fusiones
     docker run -t --rm -v ${workDir}:${workDir} \
-    ball_classifier_pruebas \
+    ariel-env \
     fungi-fusion-analyzer -c myConfig.txt -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0 
     
     # consenso
     docker run -t --rm -v ${workDir}:${workDir} \
-    ball_classifier_pruebas \
+    ariel-env \
     fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated
     """
 }
@@ -251,7 +251,7 @@ process FusionList {
  *
  */
   cache 'lenient'
-  container 'ball_classifier_pruebas'
+  container 'ariel-env'
   publishDir params.resultsDir+"/fusions", mode: 'copy'
 
   input:
@@ -273,7 +273,7 @@ process Salmon {
    *                        ---- Salmon ----
    * 
    * Salmon realiza la cuantificacion de expresion de genes. Utiliza la version
-   * de Salmon instalada en el contenedor de Docker 'ball_classifier'.
+   * de Salmon instalada en el contenedor de Docker 'ariel-env'.
    *
    * Input:
    *   - referenceDir (path): Directorio donde esta el indice generado por Salmon_index.
@@ -289,7 +289,7 @@ process Salmon {
    *
    */
   cache 'lenient'
-  container 'ball_classifier_pruebas'
+  container 'ariel-env'
   publishDir params.resultsDir+"/quantification", mode: 'copy'
 
   input:
@@ -337,7 +337,7 @@ process STAR_aligner {
    *       - {sample}_Aligned.sortedByCoord.out.bam.bai (file): Archivo BAI indice del BAM. 
    */
   cache 'lenient'
-  container 'ball_classifier_pruebas:indice_STAR'
+  container 'ariel-env:indice_STAR'
   publishDir params.resultsDir+"/alignments", mode: 'copy'
   beforeScript 'chmod o+rw .'
 
@@ -390,7 +390,7 @@ process Arriba {
    *                        ---- Arriba ----
    * ARRIBA busca fusiones y genera un reporte. Ademas, produce un pdf con
    * los dibujos de las fusiones encontradas.
-   * Utiliza la version de Arriba descargada en el contenedor 'ball_classifier'
+   * Utiliza la version de Arriba descargada en el contenedor 'ariel-env'
    *
    * Input:
    *  - referenceDir (path): Directorio con el genoma de referencia que utiliza Cicero y sus anotaciones
@@ -412,7 +412,7 @@ process Arriba {
    *
    */
   cache 'lenient'
-  container 'ball_classifier_pruebas'
+  container 'ariel-env'
   publishDir params.resultsDir + "/fusions/arriba", mode: 'copy'
 
   input:
@@ -613,7 +613,7 @@ process FusionCatcher {
    *
    */
   cache 'lenient'
-  container 'ball_classifier_pruebas'
+  container 'ariel-env'
   publishDir params.resultsDir+"/fusions/fusioncatcher", mode: 'copy'
 
   input:

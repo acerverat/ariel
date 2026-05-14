@@ -1,1 +1,1 @@
-docker build --build-arg Fungi=$(date +%s) -t ball_classifier_pruebas --no-cache .
+docker build --build-arg Fungi=$(date +%s) -t ariel-env --no-cache .

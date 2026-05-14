@@ -132,9 +132,9 @@ ARIEL/
 ├── config/
 │   └── nextflow.config          # Plantilla de configuración
 ├── docker/
-│   ├── Dockerfile               # Imagen principal (ball_classifier_pruebas)
+│   ├── Dockerfile               # Imagen principal (ariel-env)
 │   ├── Rascall_Dockerfile       # Imagen de RaScALL (rascall:1.0)
-│   ├── build_docker.sh          # Construye ball_classifier_pruebas
+│   ├── build_docker.sh          # Construye ariel-env
 │   └── buildRascall.sh          # Construye rascall:1.0
 ├── modules/
 │   └── modules.nf               # Módulos del pipeline

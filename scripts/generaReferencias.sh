@@ -51,7 +51,7 @@ mkdir -p STAR_2.7.10b_index
 docker run  -u $(id -u):$(id -g) --rm \
 		-v $PWD:$PWD \
 	        -w $PWD \
-		ball_classifier_pruebas \
+		ariel-env \
 		STAR \
 		--runMode genomeGenerate \
 		--genomeDir STAR_2.7.10b_index \

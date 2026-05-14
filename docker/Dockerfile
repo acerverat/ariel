@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-# Build the image: docker build -t ball_classifier .
+# Build the image: docker build -t ariel-env .
 
 
 ENV DEBIAN_FRONTEND noninteractive
