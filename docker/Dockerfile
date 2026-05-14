@@ -82,6 +82,17 @@ RUN curl -L https://github.com/COMBINE-lab/salmon/releases/download/v1.9.0/salmo
     ln -s /usr/local/lib/salmon-1.9.0_linux_x86_64/bin/salmon /usr/local/bin/salmon
 
 
+##### QC #####
+
+# fastp - control de calidad de lecturas FASTQ
+RUN wget -qO /usr/local/bin/fastp https://github.com/OpenGene/fastp/releases/download/v0.23.4/fastp && \
+    chmod +x /usr/local/bin/fastp
+
+# MultiQC - reporte agregado de calidad
+RUN apt-get install -y python3-pip && \
+    pip3 install --break-system-packages multiqc
+
+
 # install arriba
 RUN wget -qO - 'https://github.com/suhrig/arriba/releases/download/v2.4.0/arriba_v2.4.0.tar.gz' | tar -xzf - --exclude='arriba*/.git'
 
