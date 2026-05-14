@@ -43,6 +43,15 @@ validate_input \
 
 # ------------------------------------------
 
+read -p "Directorio de reportes de calidad: " reportsDir
+
+validate_input \
+"$reportsDir" \
+"reportsDir" \
+"/home/user/reportsAAA"
+
+# ------------------------------------------
+
 read -p "Ruta del SampleSheet TSV: " runSampleSheet
 
 validate_input \
@@ -183,6 +192,7 @@ fi
 
 cat > nextflow.config <<EOF
 params.resultsDir="${resultsDir}"
+params.reportsDir="${reportsDir}"
 
 // tsv con las columnas sample, r1 y r2
 params.runSampleSheet="${runSampleSheet}"

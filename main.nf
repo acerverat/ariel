@@ -13,8 +13,8 @@
 nextflow.enable.dsl=2
 
 
-include { 
-          STAR_aligner; 
+include {
+          STAR_aligner;
           RNApeg;
           Cicero;
           Salmon;
@@ -25,7 +25,11 @@ include {
 	        Fungi;
 	        Rascall;
           FusionSummary;
-	      //  PreExprCluster;
+          FastQC as FastQC_before;
+          FastQC as FastQC_after;
+          Fastp;
+          MultiQC as MultiQC_before;
+          MultiQC as MultiQC_after;
           } from './modules/modules.nf'
 
 workflow {
@@ -39,18 +43,17 @@ workflow {
   				.splitCsv(header: true, sep: '\t')
   				.map { sample -> [sample["Sample"], file(sample["R1"]), file(sample["R2"])]}
   
-   // First quality check out
-  FastQC(fqs_ch, "beforeTrimm")
+  // Control de calidad antes del filtrado
+  FastQC_before(fqs_ch, "beforeTrimm")
 
+  // MultiQC para lecturas sin filtrar
+  MultiQC_before(FastQC_before.out.qc.collect(), params.reportsDir+"/beforeTrimm")
 
-  // MultiQC for unfiltered reads
-  MultiQC(FastQC.out.qc.collect(), params.reportsDir+"/beforeTrimm")
-
-   // Adaptors elimination and qualiy filtering
+  // Eliminacion de adaptadores y filtrado de calidad
   Fastp(fqs_ch)
 
-  // Quality check out after trimming
-  FastQC(Fastp.out.reads, "afterTrimm")
+  // Control de calidad despues del filtrado
+  FastQC_after(Fastp.out.reads, "afterTrimm")
 
   // Salmon cuantifica las muestras.
   Salmon(params.referenceDir,fqs_ch)
@@ -101,11 +104,16 @@ workflow {
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall. 
   FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters,params.method_counts,params.supporting_reads)
 
-    // MultiQC for Fastp+Fastp+Salmon+STAR
-  reports_ch = FastQC.out.qc.collect().concat(Fastp.out.reads.collect())
-                                      .concat(Salmon.out.quant.collect())
-                                      .concat(STAR_aligner.out.BAM.collect()).collect()
+  // MultiQC final: FastQC (antes y despues) + Fastp + Salmon + STAR
+  // TODO: reemplazar Fastp.out.reads por el canal de reportes JSON de Fastp,
+  //       y STAR_aligner.out.BAM por los logs de STAR, cuando los modulos esten definidos.
+  reports_ch = FastQC_before.out.qc
+                 .mix(FastQC_after.out.qc)
+                 .mix(Fastp.out.reads)
+                 .mix(Salmon.out.sf)
+                 .mix(STAR_aligner.out.BAM)
+                 .collect()
 
-  MultiQC(reports_ch, params.reportsDir+"/afterTrimm")
+  MultiQC_after(reports_ch, params.reportsDir+"/afterTrimm")
 
 }
