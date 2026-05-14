@@ -1,6 +1,8 @@
 # ARIEL
 ### Análisis de RNA-seq para IdEntificación de subtipos de Leucemia
 
+> [English version](README.en.md)
+
 Pipeline de Nextflow para la detección de fusiones génicas y variantes en muestras de RNA-seq de Leucemia Linfoblástica Aguda (LLA).
 
 ## Descripción
