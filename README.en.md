@@ -119,6 +119,12 @@ resultsDir/
     └── otros_hallazgos.tsv   # SNVs, focal deletions, CRLF2/DUX4 expression
 ```
 
+## Authors
+
+- Alejandra Cervera
+- Yun Hernández
+- Erubiel Castillo
+
 ## Project structure
 
 ```
