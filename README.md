@@ -55,12 +55,11 @@ Esto crea `GRCh38_no_alt/` con:
 GRCh38_no_alt/
 ├── cicero_references/        # Referencias de Cicero y RNApeg
 ├── fusioncatcher_db/         # Base de datos de FusionCatcher
+├── salmon_index/             # Índice de Salmon (refgenie, partial SA)
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 └── STAR_2.7.10b_index/       # Índice de STAR
 ```
-
-> El índice de Salmon (`salmon_index/`) debe generarse por separado y colocarse dentro de `GRCh38_no_alt/`.
 
 ### 3. Generar la configuración
 

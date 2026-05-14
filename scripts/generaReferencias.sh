@@ -70,3 +70,13 @@ docker run -u $(id -u):$(id -g) --rm \
     -v $PWD/fusioncatcher_db:/opt/fusioncatcher/data/current \
     ariel-env \
     bash -c "/opt/fusioncatcher/bin/download-human-db.sh"
+
+# Índice de Salmon (GRCh38, partial SA index) desde refgenie
+wget -c "http://refgenomes.databio.org/v3/assets/archive/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default" \
+    -O salmon_index.tar.gz
+
+tar -xzf salmon_index.tar.gz
+
+# refgenie extrae a salmon_partial_sa_index/default/
+mv salmon_partial_sa_index/default salmon_index
+rm -rf salmon_partial_sa_index salmon_index.tar.gz
