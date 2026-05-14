@@ -59,4 +59,14 @@ docker run  -u $(id -u):$(id -g) --rm \
 		--sjdbGTFfile $gtf \
 		--runThreadN 4
 
+# Base de datos de FusionCatcher
+# Se descarga usando el contenedor para garantizar compatibilidad con la versión instalada.
+# El directorio fusioncatcher_db se monta en /opt/fusioncatcher/data/current dentro del
+# contenedor cada vez que se ejecuta el proceso FusionCatcher.
 
+mkdir -p fusioncatcher_db
+
+docker run -u $(id -u):$(id -g) --rm \
+    -v $PWD/fusioncatcher_db:/opt/fusioncatcher/data/current \
+    ariel-env \
+    bash -c "/opt/fusioncatcher/bin/download-human-db.sh"

@@ -54,6 +54,7 @@ Esto crea `GRCh38_no_alt/` con:
 ```
 GRCh38_no_alt/
 ├── cicero_references/        # Referencias de Cicero y RNApeg
+├── fusioncatcher_db/         # Base de datos de FusionCatcher
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 └── STAR_2.7.10b_index/       # Índice de STAR

@@ -128,15 +128,16 @@ RUN python2 -m pip install xlrd openpyxl
 RUN python2 -m pip install biopython==1.70
 
 # Instalar FusionCatcher desde bootstrap (instala en /opt/fusioncatcher)
+# La base de datos NO se descarga aquí; se descarga con generaReferencias.sh
+# y se monta en /opt/fusioncatcher/data/current en tiempo de ejecución.
 RUN wget http://sf.net/projects/fusioncatcher/files/bootstrap.py -O bootstrap.py \
-    && python2 bootstrap.py -t --download -y
+    && python2 bootstrap.py -t -y
 
-# Crear las carpetas necesarias y hacer symlink a los datos
-RUN mkdir -p /usr/local/lib/fusioncatcher/data && \
-    ln -s /opt/fusioncatcher/data/current /usr/local/lib/fusioncatcher/data/current
+# Directorio de montaje para la base de datos de FusionCatcher
+RUN mkdir -p /opt/fusioncatcher/data/current
 
 # Crear archivo de configuración
-RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/usr/local/lib/fusioncatcher/data/current' > myConfig.txt
+RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/opt/fusioncatcher/data/current' > myConfig.txt
 
 
 # Instalar Fungi

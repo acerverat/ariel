@@ -600,6 +600,8 @@ process FusionCatcher {
    * su base de datos.
    *
    * Input:
+   *   - referenceDir (path): Directorio de referencias; debe contener fusioncatcher_db/
+   *       con la base de datos descargada por generaReferencias.sh.
    *   - tuple:
    *       - sample (val): nombre de la muestra.
    *       - R1 (file): Lecturas forward (FASTQ).
@@ -617,6 +619,7 @@ process FusionCatcher {
   publishDir params.resultsDir+"/fusions/fusioncatcher", mode: 'copy'
 
   input:
+    path referenceDir
     tuple val(sample), file(R1), file(R2)
 
   output:
@@ -632,9 +635,9 @@ process FusionCatcher {
     ln -s ../${R1} \$PWD/input/r1.fq.gz
     ln -s ../${R2} \$PWD/input/r2.fq.gz
 
-    # Ejecuta fusion catcher 
+    # Ejecuta FusionCatcher apuntando a la base de datos del directorio de referencias
     /opt/fusioncatcher/bin/fusioncatcher.py \
-      -d /opt/fusioncatcher/data/current \
+      -d \$PWD/${referenceDir}/fusioncatcher_db \
       -i \$PWD/input \
       -o \$PWD/${sample}_output
 
