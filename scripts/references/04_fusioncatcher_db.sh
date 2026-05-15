@@ -18,9 +18,9 @@ fi
 echo "[fusioncatcher_db] Descargando base de datos de FusionCatcher..."
 mkdir -p "$outdir/fusioncatcher_db"
 
-docker run -u $(id -u):$(id -g) --rm \
+docker run --rm \
     -v "$outdir/fusioncatcher_db":/opt/fusioncatcher/data/current \
     ariel-env \
-    bash -c "/opt/fusioncatcher/bin/download-human_v102.sh"
+    bash -c "/opt/fusioncatcher/data/download-human-db.sh"
 
 echo "[fusioncatcher_db] Listo."
