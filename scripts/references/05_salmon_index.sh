@@ -1,28 +1,35 @@
 #!/bin/bash
 set -e
 
-# Indice de Salmon (GRCh38, partial SA index) desde refgenie
+# Genera el indice de Salmon para GRCh38 usando el transcriptoma de Gencode v42.
+# El transcriptoma se descarga, se indexa y luego se elimina para ahorrar espacio.
 
 rutaReferencias="$1"
 outdir="$rutaReferencias/GRCh38_no_alt"
 sentinel="$outdir/salmon_index/info.json"
 
 if [[ -f "$sentinel" ]]; then
-    echo "[salmon_index] Indice de Salmon ya presente, omitiendo descarga."
+    echo "[salmon_index] Indice de Salmon ya presente, omitiendo generacion."
     exit 0
 fi
 
-echo "[salmon_index] Descargando indice de Salmon desde refgenie..."
+echo "[salmon_index] Descargando transcriptoma Gencode v42..."
 mkdir -p "$outdir"
 cd "$outdir"
 
-wget -c "http://refgenomes.databio.org/v3/assets/archive/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default" \
-    -O salmon_index.tar.gz
+wget -c https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/gencode.v42.transcripts.fa.gz
+gunzip -f gencode.v42.transcripts.fa.gz
 
-tar -xzf salmon_index.tar.gz
+echo "[salmon_index] Generando indice de Salmon..."
+docker run -u $(id -u):$(id -g) --rm \
+    -v "$outdir":"$outdir" \
+    -w "$outdir" \
+    ariel-env \
+    salmon index \
+        -t gencode.v42.transcripts.fa \
+        -i salmon_index \
+        --threads 4
 
-# refgenie extrae a salmon_partial_sa_index/default/
-mv salmon_partial_sa_index/default salmon_index
-rm -rf salmon_partial_sa_index salmon_index.tar.gz
+rm gencode.v42.transcripts.fa
 
 echo "[salmon_index] Listo."
