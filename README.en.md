@@ -43,11 +43,23 @@ bash buildRascall.sh
 
 ### 2. Prepare reference files
 
-The `generaReferencias.sh` script downloads and builds the required indices in the specified directory:
+`generaReferencias.sh` is the master script that runs the subscripts in `scripts/references/` in order. Each subscript checks whether its references are already installed before downloading, so it is safe to rerun without reinstalling existing data. If a step fails, only that subscript needs to be rerun.
 
 ```bash
+# Install all references
 bash scripts/generaReferencias.sh /path/to/references
+
+# Or run a single step, for example:
+bash scripts/references/03_star_index.sh /path/to/references
 ```
+
+| Script | Content |
+|--------|---------|
+| `01_cicero.sh` | Cicero and RNApeg references |
+| `02_gencode.sh` | Gencode v42 annotations (GTF and GFF3) |
+| `03_star_index.sh` | STAR index (requires 01 and 02) |
+| `04_fusioncatcher_db.sh` | FusionCatcher database |
+| `05_salmon_index.sh` | Salmon index (built from Gencode v42 transcriptome) |
 
 This creates `GRCh38_no_alt/` with:
 
@@ -55,7 +67,7 @@ This creates `GRCh38_no_alt/` with:
 GRCh38_no_alt/
 ├── cicero_references/        # Cicero and RNApeg references
 ├── fusioncatcher_db/         # FusionCatcher database
-├── salmon_index/             # Salmon index (refgenie, partial SA)
+├── salmon_index/             # Salmon index
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 └── STAR_2.7.10b_index/       # STAR index
@@ -138,7 +150,14 @@ ARIEL/
 │   └── buildRascall.sh          # Builds rascall:1.0
 ├── modules/
 │   └── modules.nf               # Pipeline modules
-└── scripts/
-    ├── generaNextflowConfig.sh  # Interactive nextflow.config generator
-    └── generaReferencias.sh     # Downloads and builds reference files
+├── scripts/
+│   ├── generaNextflowConfig.sh  # Interactive nextflow.config generator
+│   ├── generaReferencias.sh     # Master reference installation script
+│   └── references/              # Per-tool subscripts
+│       ├── 01_cicero.sh
+│       ├── 02_gencode.sh
+│       ├── 03_star_index.sh
+│       ├── 04_fusioncatcher_db.sh
+│       └── 05_salmon_index.sh
+└── main.nf                      # Main workflow
 ```

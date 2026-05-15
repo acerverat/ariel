@@ -43,11 +43,23 @@ bash buildRascall.sh
 
 ### 2. Preparar las referencias
 
-El script `generaReferencias.sh` descarga y construye los índices necesarios en el directorio indicado:
+`generaReferencias.sh` es el script maestro que ejecuta en orden los subscripts de `scripts/references/`. Cada subscript verifica si sus referencias ya están instaladas antes de descargar, por lo que es seguro reejecutar sin reinstalar lo que ya existe. Si un paso falla, se puede reejecutar solo ese subscript.
 
 ```bash
+# Instalar todas las referencias
 bash scripts/generaReferencias.sh /ruta/al/directorio/referencias
+
+# O ejecutar un paso individual, por ejemplo:
+bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
 ```
+
+| Script | Contenido |
+|--------|-----------|
+| `01_cicero.sh` | Referencias de Cicero y RNApeg |
+| `02_gencode.sh` | Anotaciones Gencode v42 (GTF y GFF3) |
+| `03_star_index.sh` | Índice de STAR (requiere 01 y 02) |
+| `04_fusioncatcher_db.sh` | Base de datos de FusionCatcher |
+| `05_salmon_index.sh` | Índice de Salmon (construido desde transcriptoma Gencode v42) |
 
 Esto crea `GRCh38_no_alt/` con:
 
@@ -55,7 +67,7 @@ Esto crea `GRCh38_no_alt/` con:
 GRCh38_no_alt/
 ├── cicero_references/        # Referencias de Cicero y RNApeg
 ├── fusioncatcher_db/         # Base de datos de FusionCatcher
-├── salmon_index/             # Índice de Salmon (refgenie, partial SA)
+├── salmon_index/             # Índice de Salmon
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 └── STAR_2.7.10b_index/       # Índice de STAR
@@ -138,7 +150,14 @@ ARIEL/
 │   └── buildRascall.sh          # Construye rascall:1.0
 ├── modules/
 │   └── modules.nf               # Módulos del pipeline
-└── scripts/
-    ├── generaNextflowConfig.sh  # Generador interactivo de nextflow.config
-    └── generaReferencias.sh     # Descarga y construye referencias
+├── scripts/
+│   ├── generaNextflowConfig.sh  # Generador interactivo de nextflow.config
+│   ├── generaReferencias.sh     # Script maestro de referencias
+│   └── references/              # Subscripts por herramienta
+│       ├── 01_cicero.sh
+│       ├── 02_gencode.sh
+│       ├── 03_star_index.sh
+│       ├── 04_fusioncatcher_db.sh
+│       └── 05_salmon_index.sh
+└── main.nf                      # Flujo de trabajo principal
 ```
