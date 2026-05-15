@@ -13,26 +13,22 @@ process FusionSummary {
   /*
    *                        ---- FusionSummary ----
    *
-   * FusionSummary genera multiples reportes de resultados del flujo de trabajo.
-   * Utiliza prep_summary.R para generar el reporte.
+   * FusionSummary genera los reportes finales del pipeline en dos pasos secuenciales.
    *
-   *  Input:
-   *  	- SampleSheet (path): Directorio de las rutas de las muestras a analizar.
-   * 	- bp_consensus (path): Reporte de Fungi con los breakpoints.
-   *	- rascall (val): Directorio de trabajo de Rascall.
-   *	- cluster (path): Reporte de ExprCluster. 
+   * Input:
+   *   - SampleSheet (path): TSV con las muestras a analizar.
+   *   - bp_consensus (path): Reporte de Fungi con los breakpoints.
+   *   - rascall (val): Archivos de resultados de RaScALL (dependencia de ejecucion).
+   *   - cluster (path): Tabla log2tpm_CRLF2_3_clusters.tsv de ExprClusters.
    *
-   *  Output:
-   *	La salida de FusionSummary son 4 reportes, aqui se muestra sus campos:
-   *	- report_summary.tsv (file):
-   *		Muestra, Nombre_Fusion, Lista_Metodos_Fusiones, Subtipos_Relevantes, Subtipos_Emergentes, Mejor_bp,
-   *		SR_arriba, SR_cicero y SR_fusioncatcher
-   *	
-   * 	
-   *	- otros_hallazgos.tsv (file): 
-   *		Muestra, Nombre_Fusion, Lista_Metodos_Fusiones, Calidad_fusion, SNV_RaScALL, 
-   *		Deleciones_Focales_RaScALL, Expresion_CRLF2 Duplicacion_CRLF2 y Dux4_RaScALL
+   * Output:
+   *   - hallazgos_principales.csv:
+   *       Muestra, Fusion, Metodos, Subtipo, Subtipo_Emergente, Punto_de_corte,
+   *       SR_Arriba, SR_Cicero, SR_Fusioncatcher
    *
+   *   - hallazgos_otros.csv:
+   *       Muestra, Fusion, Metodos, Subtipo, Subtipo_Emergente, CRLF2_expr,
+   *       SNV_RaScALL, Deleciones_Focales_Rascall, DUX4r_Rascall, Duplicacion_CRLF2
    */
   cache 'lenient'
   publishDir params.resultsDir+"/reports", mode: 'copy'
@@ -42,17 +38,17 @@ process FusionSummary {
     path bp_consensus
     val rascall
     path cluster
-    val method_counts
-    val supporting_reads
 
   output:
-    file ('*.tsv')
+    file ('hallazgos_*.csv')
 
   script:
   """
-    # prep_summary.R genera el reporte de fusiones
-    prep_summary.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}"/rascall" ${cluster} ${params.resultsDir}"/fusions/cicero" ${method_counts} ${supporting_reads}
-    
+    # Paso 1: genera hallazgos_principales.csv, fusiones_otras.csv y rascall_data.csv
+    generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}/rascall
+
+    # Paso 2: genera hallazgos_otros.csv usando los intermedios del paso anterior
+    generaReporteHallazgosOtros.R fusiones_otras.csv rascall_data.csv ${params.resultsDir}/fusions/cicero ${SampleSheet} ${cluster}
   """
 }
 

@@ -102,7 +102,7 @@ workflow {
   Rascall.out.results.view()
   ExprClusters.out.clusters.view()  
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall. 
-  FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters,params.method_counts,params.supporting_reads)
+  FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters)
 
   // MultiQC final: FastQC (antes y despues) + Fastp
   // TODO: agregar logs de STAR cuando el modulo emita archivos de log
