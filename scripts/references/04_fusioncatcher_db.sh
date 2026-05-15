@@ -21,6 +21,6 @@ mkdir -p "$outdir/fusioncatcher_db"
 docker run -u $(id -u):$(id -g) --rm \
     -v "$outdir/fusioncatcher_db":/opt/fusioncatcher/data/current \
     ariel-env \
-    bash -c "/opt/fusioncatcher/bin/download-human-db.sh"
+    bash -c "/opt/fusioncatcher/bin/download-human_v102.sh"
 
 echo "[fusioncatcher_db] Listo."
