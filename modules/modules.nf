@@ -645,3 +645,112 @@ process FusionCatcher {
     cp \$PWD/${sample}_output/final-list_candidate-fusion-genes.txt \$PWD/${sample}_final-list_candidate-fusion-genes.txt
   """
 }
+
+process FastQC {
+  /*
+   *                        ---- FastQC ----
+   *
+   * FastQC realiza el control de calidad de las lecturas FASTQ, generando
+   * reportes HTML y archivos ZIP procesables por MultiQC.
+   *
+   * Input:
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - R1 (file): Lecturas forward (FASTQ).
+   *       - R2 (file): Lecturas reverse (FASTQ).
+   *   - label (val): Punto de control ("beforeTrimm" o "afterTrimm").
+   *
+   * Output:
+   *   - *_fastqc.zip (emit: qc): Archivos ZIP con reportes para MultiQC.
+   *   - *_fastqc.html: Reportes HTML de FastQC.
+   */
+  cache 'lenient'
+  container 'ariel-env'
+  publishDir params.reportsDir+"/${label}", mode: 'copy'
+
+  input:
+    tuple val(sample), file(R1), file(R2)
+    val label
+
+  output:
+    path("*_fastqc.zip"), emit: qc
+    path("*_fastqc.html")
+
+  script:
+  """
+    fastqc ${R1} ${R2}
+  """
+}
+
+process Fastp {
+  /*
+   *                        ---- Fastp ----
+   *
+   * Fastp elimina adaptadores y filtra lecturas por calidad.
+   *
+   * Input:
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - R1 (file): Lecturas forward (FASTQ).
+   *       - R2 (file): Lecturas reverse (FASTQ).
+   *
+   * Output:
+   *   - tuple (emit: reads):
+   *       - sample (val): Nombre de la muestra.
+   *       - R1_{sample}_fastp.fq.gz (file): Lecturas forward filtradas.
+   *       - R2_{sample}_fastp.fq.gz (file): Lecturas reverse filtradas.
+   *   - {sample}_fastp.json (emit: json): Reporte JSON para MultiQC.
+   *   - {sample}_fastp.html: Reporte HTML de Fastp.
+   */
+  cache 'lenient'
+  container 'ariel-env'
+  publishDir params.resultsDir+"/trimmed", mode: 'copy', pattern: "*.fq.gz"
+  publishDir params.reportsDir+"/afterTrimm", mode: 'copy', pattern: "*.{html,json}"
+
+  input:
+    tuple val(sample), file(R1), file(R2)
+
+  output:
+    tuple val(sample), file("R1_${sample}_fastp.fq.gz"), file("R2_${sample}_fastp.fq.gz"), emit: reads
+    path("${sample}_fastp.json"), emit: json
+    path("${sample}_fastp.html")
+
+  script:
+  """
+    fastp \
+      -i ${R1} -I ${R2} \
+      -o R1_${sample}_fastp.fq.gz -O R2_${sample}_fastp.fq.gz \
+      -h ${sample}_fastp.html -j ${sample}_fastp.json
+  """
+}
+
+process MultiQC {
+  /*
+   *                        ---- MultiQC ----
+   *
+   * MultiQC agrega reportes de FastQC, Fastp y otras herramientas en un
+   * unico reporte HTML interactivo.
+   *
+   * Input:
+   *   - qc_files (path): Coleccion de reportes (ZIPs de FastQC, JSONs de Fastp, etc.).
+   *   - outdir (val): Ruta de salida del reporte.
+   *
+   * Output:
+   *   - multiqc_report.html: Reporte HTML interactivo de MultiQC.
+   */
+  cache 'lenient'
+  container 'ariel-env'
+  publishDir { outdir }, mode: 'copy'
+
+  input:
+    path qc_files
+    val outdir
+
+  output:
+    path("multiqc_report.html")
+
+  script:
+  """
+    multiqc .
+  """
+}

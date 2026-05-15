@@ -104,14 +104,11 @@ workflow {
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall. 
   FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters,params.method_counts,params.supporting_reads)
 
-  // MultiQC final: FastQC (antes y despues) + Fastp + Salmon + STAR
-  // TODO: reemplazar Fastp.out.reads por el canal de reportes JSON de Fastp,
-  //       y STAR_aligner.out.BAM por los logs de STAR, cuando los modulos esten definidos.
+  // MultiQC final: FastQC (antes y despues) + Fastp
+  // TODO: agregar logs de STAR cuando el modulo emita archivos de log
   reports_ch = FastQC_before.out.qc
                  .mix(FastQC_after.out.qc)
-                 .mix(Fastp.out.reads)
-                 .mix(Salmon.out.sf)
-                 .mix(STAR_aligner.out.BAM)
+                 .mix(Fastp.out.json)
                  .collect()
 
   MultiQC_after(reports_ch, params.reportsDir+"/afterTrimm")

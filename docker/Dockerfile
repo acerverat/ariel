@@ -84,8 +84,8 @@ RUN curl -L https://github.com/COMBINE-lab/salmon/releases/download/v1.9.0/salmo
 
 ##### QC #####
 
-# fastp - control de calidad de lecturas FASTQ
-RUN apt-get install -y fastp
+# FastQC y fastp - control de calidad de lecturas FASTQ
+RUN apt-get install -y fastqc fastp
 
 # MultiQC - reporte agregado de calidad
 RUN apt-get install -y python3-pip && \
