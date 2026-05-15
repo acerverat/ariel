@@ -143,9 +143,6 @@ RUN python2 -m pip install biopython==1.70
 RUN wget http://sf.net/projects/fusioncatcher/files/bootstrap.py -O bootstrap.py \
     && python2 bootstrap.py -t -y
 
-# Directorio de montaje para la base de datos de FusionCatcher
-RUN mkdir -p /opt/fusioncatcher/data/current
-
 # Crear archivo de configuración
 RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/opt/fusioncatcher/data/current' > myConfig.txt
 
