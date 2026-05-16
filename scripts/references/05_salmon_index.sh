@@ -36,7 +36,7 @@ fi
 
 # ── Tabla ENSG / ENST / gene_name ─────────────────────────────────────────────
 
-if [[ -f "$outdir/ensg_enst.tsv" ]]; then
+if [[ -f "$outdir/geneId_transcriptId_geneName.tsv" ]]; then
     echo "[ensg_enst] Tabla ya presente, omitiendo generacion."
 else
     gtf="$outdir/gencode.v42.annotation.gtf"
@@ -45,14 +45,14 @@ else
         exit 1
     fi
 
-    echo "[ensg_enst] Generando ensg_enst.tsv desde la anotacion Gencode v42..."
+    echo "[ensg_enst] Generando geneId_transcriptId_geneName.tsv desde la anotacion Gencode v42..."
     gawk 'BEGIN{OFS="\t"; print "gene_id\ttranscript_id\tgene_name"}
           $3=="transcript" {
             match($0, /gene_id "([^"]+)"/, g)
             match($0, /transcript_id "([^"]+)"/, t)
             match($0, /gene_name "([^"]+)"/, n)
             print g[1], t[1], n[1]
-          }' "$gtf" > "$outdir/ensg_enst.tsv"
+          }' "$gtf" > "$outdir/geneId_transcriptId_geneName.tsv"
 
-    echo "[ensg_enst] Listo. $(( $(wc -l < "$outdir/ensg_enst.tsv") - 1 )) transcriptos escritos."
+    echo "[ensg_enst] Listo. $(( $(wc -l < "$outdir/geneId_transcriptId_geneName.tsv") - 1 )) transcriptos escritos."
 fi
