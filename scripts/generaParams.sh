@@ -36,7 +36,7 @@ runSampleSheet=$(ask  "Ruta del SampleSheet TSV (Sample/R1/R2)")
 referenceDir=$(ask    "Directorio de referencias")
 ensg_enst_table=$(ask "Tabla geneId_transcriptId_geneName.tsv" \
                        "$referenceDir/GRCh38_no_alt/geneId_transcriptId_geneName.tsv")
-exprDir=$(ask         "Tabla de TPMs de referencia (panel de genes)")
+tpmPanel=$(ask        "Tabla de TPMs de referencia (panel de genes)")
 resultsDir=$(ask      "Directorio de resultados")
 reportsDir=$(ask      "Directorio de reportes de QC")
 threadsSTAR=$(ask     "Hilos para STAR" "4")
@@ -51,7 +51,7 @@ cat > "$OUT" <<EOF
 runSampleSheet: "$runSampleSheet"
 referenceDir:   "$referenceDir"
 ensg_enst_table: "$ensg_enst_table"
-exprDir:        "$exprDir"
+tpmPanel:       "$tpmPanel"
 
 # Rutas de salida
 resultsDir: "$resultsDir"
