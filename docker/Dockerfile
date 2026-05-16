@@ -152,7 +152,6 @@ RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/opt/fusionca
 RUN git clone https://alejandra_cervera@bitbucket.org/alejandra_cervera/fungi.git
 RUN cd fungi && git fetch && git checkout v2 
 RUN cd fungi/resources && ./download.sh 
-ARG Fungi=unknown
 RUN apt install python3-pandas -y
 RUN cd /usr/local/lib/fungi && git pull
 RUN ln -s /usr/local/lib/fungi/bin/* /usr/local/bin/

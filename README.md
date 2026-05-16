@@ -32,13 +32,11 @@ ARIEL integra múltiples herramientas para la detección y análisis de fusiones
 ### 1. Construir las imágenes de Docker
 
 ```bash
-cd docker
-
 # Imagen principal: STAR, Salmon, Arriba, FusionCatcher, Fungi
-bash build_docker.sh
+bash docker/build_ariel.sh
 
 # Imagen de RaScALL
-bash buildRascall.sh
+bash docker/build_rascall.sh
 ```
 
 ### 2. Preparar las referencias
@@ -167,8 +165,8 @@ ARIEL/
 ├── docker/
 │   ├── Dockerfile                          # Imagen principal (ariel-env)
 │   ├── Rascall_Dockerfile                  # Imagen de RaScALL (rascall:1.0)
-│   ├── build_docker.sh                     # Construye ariel-env
-│   └── buildRascall.sh                     # Construye rascall:1.0
+│   ├── build_ariel.sh                      # Construye ariel-env
+│   └── build_rascall.sh                    # Construye rascall:1.0
 ├── modules/
 │   └── modules.nf                          # Módulos del pipeline
 ├── scripts/

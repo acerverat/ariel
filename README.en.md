@@ -32,13 +32,11 @@ ARIEL integrates multiple bioinformatics tools for the detection and analysis of
 ### 1. Build the Docker images
 
 ```bash
-cd docker
-
 # Main image: STAR, Salmon, Arriba, FusionCatcher, Fungi
-bash build_docker.sh
+bash docker/build_ariel.sh
 
 # RaScALL image
-bash buildRascall.sh
+bash docker/build_rascall.sh
 ```
 
 ### 2. Prepare reference files
@@ -167,8 +165,8 @@ ARIEL/
 ├── docker/
 │   ├── Dockerfile                          # Main image (ariel-env)
 │   ├── Rascall_Dockerfile                  # RaScALL image (rascall:1.0)
-│   ├── build_docker.sh                     # Builds ariel-env
-│   └── buildRascall.sh                     # Builds rascall:1.0
+│   ├── build_ariel.sh                      # Builds ariel-env
+│   └── build_rascall.sh                    # Builds rascall:1.0
 ├── modules/
 │   └── modules.nf                          # Pipeline modules
 ├── scripts/
