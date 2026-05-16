@@ -74,13 +74,20 @@ GRCh38_no_alt/
 └── STAR_2.7.10b_index/              # Índice de STAR
 ```
 
-### 3. Generar la configuración
+### 3. Configurar los parámetros
 
-```bash
-bash scripts/generaNextflowConfig.sh
+Editar `config/params.yaml` con las rutas del entorno:
+
+```yaml
+runSampleSheet: "/ruta/al/samplesheet.tsv"
+referenceDir:   "/ruta/a/referencias"
+ensg_enst_table: "/ruta/a/referencias/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"
+exprDir:        "/ruta/a/tpm_panel.tsv"
+resultsDir:     "/ruta/a/resultados"
+reportsDir:     "/ruta/a/reportes"
 ```
 
-El script solicita de forma interactiva las rutas y parámetros, y genera un archivo `nextflow.config`.
+Editar `config/nextflow.config` para establecer el directorio de trabajo de Nextflow (`workDir`).
 
 ### SampleSheet
 
@@ -95,7 +102,7 @@ CA002	/ruta/CA002_R1.fastq.gz	/ruta/CA002_R2.fastq.gz
 ## Uso
 
 ```bash
-nextflow run main.nf -c nextflow.config
+nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
 ```
 
 ## Parámetros
@@ -148,7 +155,8 @@ ARIEL/
 │   ├── generaReporteHallazgosPrincipales.R # Reporte de fusiones principales e integración con RaScALL
 │   └── generaReporteHallazgosOtros.R       # Reporte de fusiones secundarias, SNVs, deleciones y expresión
 ├── config/
-│   └── nextflow.config                     # Plantilla de configuración
+│   ├── nextflow.config                     # Configuración de infraestructura (Docker, workDir)
+│   └── params.yaml                         # Parámetros del flujo de trabajo (rutas, hilos, umbrales)
 ├── docker/
 │   ├── Dockerfile                          # Imagen principal (ariel-env)
 │   ├── Rascall_Dockerfile                  # Imagen de RaScALL (rascall:1.0)

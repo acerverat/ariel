@@ -74,13 +74,20 @@ GRCh38_no_alt/
 └── STAR_2.7.10b_index/              # STAR index
 ```
 
-### 3. Generate the configuration
+### 3. Configure parameters
 
-```bash
-bash scripts/generaNextflowConfig.sh
+Edit `config/params.yaml` with the paths for your environment:
+
+```yaml
+runSampleSheet: "/path/to/samplesheet.tsv"
+referenceDir:   "/path/to/references"
+ensg_enst_table: "/path/to/references/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"
+exprDir:        "/path/to/tpm_panel.tsv"
+resultsDir:     "/path/to/results"
+reportsDir:     "/path/to/reports"
 ```
 
-The script interactively prompts for paths and parameters, and generates a `nextflow.config` file.
+Edit `config/nextflow.config` to set the Nextflow work directory (`workDir`).
 
 ### SampleSheet
 
@@ -95,7 +102,7 @@ CA002	/path/to/CA002_R1.fastq.gz	/path/to/CA002_R2.fastq.gz
 ## Usage
 
 ```bash
-nextflow run main.nf -c nextflow.config
+nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
 ```
 
 ## Parameters
@@ -148,7 +155,8 @@ ARIEL/
 │   ├── generaReporteHallazgosPrincipales.R # Main fusion report and RaScALL integration
 │   └── generaReporteHallazgosOtros.R       # Secondary fusions, SNVs, deletions, and expression report
 ├── config/
-│   └── nextflow.config                     # Configuration template
+│   ├── nextflow.config                     # Infrastructure configuration (Docker, workDir)
+│   └── params.yaml                         # Workflow parameters (paths, threads, thresholds)
 ├── docker/
 │   ├── Dockerfile                          # Main image (ariel-env)
 │   ├── Rascall_Dockerfile                  # RaScALL image (rascall:1.0)

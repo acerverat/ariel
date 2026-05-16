@@ -1,0 +1,20 @@
+# Parametros del flujo de trabajo ARIEL.
+# Pasar a Nextflow con: nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
+
+# Rutas de entrada
+runSampleSheet: ""       # TSV con columnas Sample, R1, R2
+referenceDir:   ""       # Directorio con las referencias (generado por scripts/generaReferencias.sh)
+ensg_enst_table: ""      # referenceDir/GRCh38_no_alt/geneId_transcriptId_geneName.tsv
+exprDir:        ""       # Tabla de TPMs de referencia (panel de genes)
+
+# Rutas de salida
+resultsDir: ""           # Directorio de resultados del pipeline
+reportsDir: ""           # Directorio de reportes de QC (FastQC, MultiQC, Fastp)
+
+# FusionSummary
+method_counts:    3      # Minimo de metodos que deben detectar una fusion para hallazgos_principales
+supporting_reads: 10     # Minimo de lecturas de soporte para hallazgos_principales
+
+# Hilos
+threadsSTAR:    4
+threadsRascall: 4
