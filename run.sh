@@ -6,6 +6,12 @@ CONFIG="$SCRIPT_DIR/config/nextflow.config"
 PARAMS="$SCRIPT_DIR/config/params.yaml"
 MAIN="$SCRIPT_DIR/main.nf"
 
+# Directorio de trabajo de Nextflow.
+# Prioridad: variable de entorno NXF_WORK > valor por defecto ($PWD/work).
+# Se puede sobreescribir antes de llamar al script:
+#   NXF_WORK=/ruta/alternativa bash run.sh
+WORK_DIR="${NXF_WORK:-$PWD/work}"
+
 # Verificar dependencias
 if ! command -v nextflow &> /dev/null; then
     echo "Error: nextflow no encontrado en PATH." >&2
@@ -25,7 +31,10 @@ for f in "$CONFIG" "$PARAMS" "$MAIN"; do
     fi
 done
 
+echo "Directorio de trabajo: $WORK_DIR"
+
 nextflow run "$MAIN" \
     -c "$CONFIG" \
     -params-file "$PARAMS" \
+    -w "$WORK_DIR" \
     "$@"

@@ -333,7 +333,7 @@ process STAR_aligner {
    *       - {sample}_Aligned.sortedByCoord.out.bam.bai (file): Archivo BAI indice del BAM. 
    */
   cache 'lenient'
-  container 'ariel-env:indice_STAR'
+  container 'ariel-env'
   publishDir params.resultsDir+"/alignments", mode: 'copy'
   beforeScript 'chmod o+rw .'
 
