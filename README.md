@@ -59,18 +59,19 @@ bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
 | `02_gencode.sh` | Anotaciones Gencode v42 (GTF y GFF3) |
 | `03_star_index.sh` | Índice de STAR (requiere 01 y 02) |
 | `04_fusioncatcher_db.sh` | Base de datos de FusionCatcher |
-| `05_salmon_index.sh` | Índice de Salmon (construido desde transcriptoma Gencode v42) |
+| `05_salmon_index.sh` | Índice de Salmon (desde transcriptoma Gencode v42) y tabla `geneId_transcriptId_geneName.tsv` |
 
 Esto crea `GRCh38_no_alt/` con:
 
 ```
 GRCh38_no_alt/
-├── cicero_references/        # Referencias de Cicero y RNApeg
-├── fusioncatcher_db/         # Base de datos de FusionCatcher
-├── salmon_index/             # Índice de Salmon
+├── cicero_references/               # Referencias de Cicero y RNApeg
+├── fusioncatcher_db/                # Base de datos de FusionCatcher
+├── salmon_index/                    # Índice de Salmon
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
-└── STAR_2.7.10b_index/       # Índice de STAR
+├── geneId_transcriptId_geneName.tsv # Tabla gene_id / transcript_id / gene_name
+└── STAR_2.7.10b_index/              # Índice de STAR
 ```
 
 ### 3. Generar la configuración
@@ -83,10 +84,10 @@ El script solicita de forma interactiva las rutas y parámetros, y genera un arc
 
 ### SampleSheet
 
-Archivo TSV con las columnas `sample`, `r1`, `r2`:
+Archivo TSV con las columnas `Sample`, `R1`, `R2`:
 
 ```
-sample	r1	r2
+Sample	R1	R2
 CA001	/ruta/CA001_R1.fastq.gz	/ruta/CA001_R2.fastq.gz
 CA002	/ruta/CA002_R1.fastq.gz	/ruta/CA002_R2.fastq.gz
 ```
@@ -105,7 +106,7 @@ nextflow run main.nf -c nextflow.config
 | `runSampleSheet` | Ruta del SampleSheet (TSV) | — |
 | `referenceDir` | Directorio de referencias | — |
 | `exprDir` | Tabla de TPMs de referencia (panel de genes) | — |
-| `ensg_enst_table` | Tabla de conversión ENSG/ENST | — |
+| `ensg_enst_table` | Tabla `geneId_transcriptId_geneName.tsv` generada por `05_salmon_index.sh` | — |
 | `workDir` | Directorio de trabajo de Nextflow | — |
 | `method_counts` | Métodos mínimos que deben detectar una fusión | `10` |
 | `supporting_reads` | Lecturas de soporte mínimas | `3` |
@@ -127,8 +128,8 @@ resultsDir/
 ├── quantification/      # Cuantificación de expresión (Salmon)
 ├── ExprClusters/        # Resultados de clustering de expresión
 └── reports/
-    ├── report_summary.tsv    # Fusiones, subtipos y breakpoints por muestra
-    └── otros_hallazgos.tsv   # SNVs, deleciones focales, expresión CRLF2/DUX4
+    ├── hallazgos_principales.csv  # Fusiones principales, subtipos y breakpoints por muestra
+    └── hallazgos_otros.csv        # Fusiones secundarias, SNVs, deleciones focales, expresión CRLF2/DUX4
 ```
 
 ## Autores
@@ -141,23 +142,28 @@ resultsDir/
 
 ```
 ARIEL/
+├── bin/
+│   ├── preExprCluster.R                    # Genera matriz TPM desde cuantificaciones de Salmon
+│   ├── kmeans.R                            # Clustering k-means por gen y generación de boxplots
+│   ├── generaReporteHallazgosPrincipales.R # Reporte de fusiones principales e integración con RaScALL
+│   └── generaReporteHallazgosOtros.R       # Reporte de fusiones secundarias, SNVs, deleciones y expresión
 ├── config/
-│   └── nextflow.config          # Plantilla de configuración
+│   └── nextflow.config                     # Plantilla de configuración
 ├── docker/
-│   ├── Dockerfile               # Imagen principal (ariel-env)
-│   ├── Rascall_Dockerfile       # Imagen de RaScALL (rascall:1.0)
-│   ├── build_docker.sh          # Construye ariel-env
-│   └── buildRascall.sh          # Construye rascall:1.0
+│   ├── Dockerfile                          # Imagen principal (ariel-env)
+│   ├── Rascall_Dockerfile                  # Imagen de RaScALL (rascall:1.0)
+│   ├── build_docker.sh                     # Construye ariel-env
+│   └── buildRascall.sh                     # Construye rascall:1.0
 ├── modules/
-│   └── modules.nf               # Módulos del pipeline
+│   └── modules.nf                          # Módulos del pipeline
 ├── scripts/
-│   ├── generaNextflowConfig.sh  # Generador interactivo de nextflow.config
-│   ├── generaReferencias.sh     # Script maestro de referencias
-│   └── references/              # Subscripts por herramienta
+│   ├── generaNextflowConfig.sh             # Generador interactivo de nextflow.config
+│   ├── generaReferencias.sh                # Script maestro de referencias
+│   └── references/                         # Subscripts por herramienta
 │       ├── 01_cicero.sh
 │       ├── 02_gencode.sh
 │       ├── 03_star_index.sh
 │       ├── 04_fusioncatcher_db.sh
 │       └── 05_salmon_index.sh
-└── main.nf                      # Flujo de trabajo principal
+└── main.nf                                 # Flujo de trabajo principal
 ```
