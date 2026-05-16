@@ -74,18 +74,11 @@ GRCh38_no_alt/
 
 ### 3. Configure parameters
 
-Edit `config/params.yaml` with the paths for your environment:
-
-```yaml
-runSampleSheet: "/path/to/samplesheet.tsv"
-referenceDir:   "/path/to/references"
-ensg_enst_table: "/path/to/references/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"
-exprDir:        "/path/to/tpm_panel.tsv"
-resultsDir:     "/path/to/results"
-reportsDir:     "/path/to/reports"
+```bash
+bash scripts/generaParams.sh
 ```
 
-Edit `config/nextflow.config` to set the Nextflow work directory (`workDir`).
+The script interactively prompts for paths and generates `config/params.yaml`. The file can also be edited directly.
 
 ### SampleSheet
 
@@ -170,7 +163,7 @@ ARIEL/
 ├── modules/
 │   └── modules.nf                          # Pipeline modules
 ├── scripts/
-│   ├── generaNextflowConfig.sh             # Interactive nextflow.config generator
+│   ├── generaParams.sh                     # Interactive config/params.yaml generator
 │   ├── generaReferencias.sh                # Master reference installation script
 │   └── references/                         # Per-tool subscripts
 │       ├── 01_cicero.sh

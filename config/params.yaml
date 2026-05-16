@@ -11,10 +11,6 @@ exprDir:        ""       # Tabla de TPMs de referencia (panel de genes)
 resultsDir: ""           # Directorio de resultados del pipeline
 reportsDir: ""           # Directorio de reportes de QC (FastQC, MultiQC, Fastp)
 
-# FusionSummary
-method_counts:    3      # Minimo de metodos que deben detectar una fusion para hallazgos_principales
-supporting_reads: 10     # Minimo de lecturas de soporte para hallazgos_principales
-
 # Hilos
 threadsSTAR:    4
 threadsRascall: 4
