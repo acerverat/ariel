@@ -102,7 +102,14 @@ CA002	/path/to/CA002_R1.fastq.gz	/path/to/CA002_R2.fastq.gz
 ## Usage
 
 ```bash
-nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
+bash run.sh
+```
+
+Any additional arguments are passed directly to Nextflow:
+
+```bash
+bash run.sh -resume
+bash run.sh -resume -with-trace
 ```
 
 ## Parameters
@@ -173,5 +180,6 @@ ARIEL/
 │       ├── 03_star_index.sh
 │       ├── 04_fusioncatcher_db.sh
 │       └── 05_salmon_index.sh
-└── main.nf                                 # Main workflow
+├── main.nf                                 # Main workflow
+└── run.sh                                  # Pipeline run script
 ```
