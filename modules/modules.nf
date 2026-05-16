@@ -628,8 +628,8 @@ process FusionCatcher {
     mkdir \$PWD/${sample}_output
 
     # Crea una ruta simbolica de R1 y R2 a input
-    ln -s ../${R1} \$PWD/input/r1.fq.gz
-    ln -s ../${R2} \$PWD/input/r2.fq.gz
+    ln -s \$PWD/${R1} \$PWD/input/r1.fq.gz
+    ln -s \$PWD/${R2} \$PWD/input/r2.fq.gz
 
     # Ejecuta FusionCatcher apuntando a la base de datos del directorio de referencias
     /opt/fusioncatcher/bin/fusioncatcher.py \
