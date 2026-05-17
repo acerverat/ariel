@@ -56,7 +56,7 @@ workflow {
   FastQC_after(Fastp.out.reads, "afterTrimm")
 
   // Salmon cuantifica las muestras.
-  Salmon(params.referenceDir,fqs_ch)
+  Salmon(params.referenceDir, Fastp.out.reads)
 
   // "salmon_ch" espera a obtener todos los resultados antes que "PreExprCluster" los reciba.
   salmon_ch = Salmon.out.sf.collect()
@@ -65,12 +65,12 @@ workflow {
   ExprClusters(params.runSampleSheet, salmon_ch,
                file("${params.referenceDir}/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"),
                params.tpmPanel)
-  
-  // a partir de fqs_ch, Rascall busca fusiones.
-  Rascall(fqs_ch)
 
-  // STAR se utiliza en su modo de alineamiento. 
-  STAR_aligner(params.referenceDir,params.threadsSTAR,fqs_ch) 
+  // a partir de Fastp.out.reads, Rascall busca fusiones.
+  Rascall(Fastp.out.reads)
+
+  // STAR se utiliza en su modo de alineamiento.
+  STAR_aligner(params.referenceDir, params.threadsSTAR, Fastp.out.reads)
 
   // RNApeg se utiliza para busqueda de uniones y fusiones, utiliza los ".bam" resultado de STAR_aligner.
   RNApeg(params.referenceDir,STAR_aligner.out.BAM)
@@ -86,7 +86,7 @@ workflow {
   Arriba(params.referenceDir,STAR_aligner.out.BAM)
 
   // FusionCatcher busca fusiones y genera un reporte.
-  FusionCatcher(params.referenceDir,fqs_ch)
+  FusionCatcher(params.referenceDir, Fastp.out.reads)
 
   /* Genera un canal con los resultados de los reportes de fusiones de FusionCatcher, 
    * Arriba y Cicero. No avanza hasta que se obtienen todos los reportes.
