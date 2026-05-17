@@ -8,7 +8,7 @@ set -e
 
 rutaReferencias="$1"
 outdir="$rutaReferencias/GRCh38_no_alt"
-sentinel="$outdir/fusioncatcher_db/version.txt"
+sentinel="$outdir/fusioncatcher_db/current/version.txt"
 
 if [[ -f "$sentinel" ]]; then
     echo "[fusioncatcher_db] Base de datos ya presente, omitiendo descarga."
@@ -19,7 +19,7 @@ echo "[fusioncatcher_db] Descargando base de datos de FusionCatcher..."
 mkdir -p "$outdir/fusioncatcher_db"
 
 docker run --rm \
-    -v "$outdir/fusioncatcher_db":/opt/fusioncatcher/data/current \
+    -v "$outdir/fusioncatcher_db":/opt/fusioncatcher/data \
     ariel-env \
     bash -c "/opt/fusioncatcher/data/download-human-db.sh"
 
