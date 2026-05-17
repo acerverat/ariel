@@ -22,8 +22,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD5
 RUN add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
 RUN apt-get -y install r-base
 RUN apt-get -y install libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
-RUN R -e 'install.packages("xml2", dependencies = T, INSTALL_opts = c("--no-lock"))'
-RUN R -e 'install.packages("tidyverse")'
+RUN R -e 'install.packages("xml2", repos="https://cloud.r-project.org", dependencies=TRUE, INSTALL_opts=c("--no-lock"))'
+RUN R -e 'install.packages("tidyverse", repos="https://cloud.r-project.org", dependencies=TRUE); if (!requireNamespace("tidyverse", quietly=TRUE)) stop("tidyverse installation failed")'
 RUN R -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")' && \
     R -e 'BiocManager::install(c("Biostrings", "rtracklayer"))' 
 
