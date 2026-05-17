@@ -62,7 +62,9 @@ workflow {
   salmon_ch = Salmon.out.sf.collect()
 
   // ExprClusters fenera la matriz de expresion
-  ExprClusters(params.runSampleSheet, salmon_ch, params.ensg_enst_table, params.tpmPanel)
+  ExprClusters(params.runSampleSheet, salmon_ch,
+               file("${params.referenceDir}/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"),
+               params.tpmPanel)
   
   // a partir de fqs_ch, Rascall busca fusiones.
   Rascall(fqs_ch)

@@ -34,8 +34,6 @@ echo ""
 
 runSampleSheet=$(ask  "Ruta del SampleSheet TSV (Sample/R1/R2)")
 referenceDir=$(ask    "Directorio de referencias")
-ensg_enst_table=$(ask "Tabla geneId_transcriptId_geneName.tsv" \
-                       "$referenceDir/GRCh38_no_alt/geneId_transcriptId_geneName.tsv")
 tpmPanel=$(ask        "Tabla de TPMs de referencia (panel de genes)")
 resultsDir=$(ask      "Directorio de resultados")
 reportsDir=$(ask      "Directorio de reportes de QC")
@@ -50,7 +48,6 @@ cat > "$OUT" <<EOF
 # Rutas de entrada
 runSampleSheet: "$runSampleSheet"
 referenceDir:   "$referenceDir"
-ensg_enst_table: "$ensg_enst_table"
 tpmPanel:       "$tpmPanel"
 
 # Rutas de salida

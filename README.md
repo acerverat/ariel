@@ -111,7 +111,6 @@ bash run.sh -resume -with-trace
 | `runSampleSheet` | Ruta del SampleSheet (TSV) | — |
 | `referenceDir` | Directorio de referencias | — |
 | `tpmPanel` | Tabla de TPMs de referencia (panel de genes) | — |
-| `ensg_enst_table` | Tabla `geneId_transcriptId_geneName.tsv` generada por `05_salmon_index.sh` | — |
 | `workDir` | Directorio de trabajo de Nextflow | — |
 | `method_counts` | Métodos mínimos que deben detectar una fusión | `10` |
 | `supporting_reads` | Lecturas de soporte mínimas | `3` |
