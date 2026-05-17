@@ -76,7 +76,7 @@ process ExprClusters {
   publishDir params.resultsDir+"/ExprClusters", mode: 'copy'
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*png"
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*cluster*"
-  container 'ariel-env'
+  container 'ariel-env:latest'
 
   input:
     path runSampleSheet
@@ -247,7 +247,7 @@ process FusionList {
  *
  */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir+"/fusions", mode: 'copy'
 
   input:
@@ -285,7 +285,7 @@ process Salmon {
    *
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir+"/quantification", mode: 'copy'
 
   input:
@@ -333,7 +333,7 @@ process STAR_aligner {
    *       - {sample}_Aligned.sortedByCoord.out.bam.bai (file): Archivo BAI indice del BAM. 
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir+"/alignments", mode: 'copy'
   beforeScript 'chmod o+rw .'
 
@@ -408,7 +408,7 @@ process Arriba {
    *
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir + "/fusions/arriba", mode: 'copy'
 
   input:
@@ -611,7 +611,7 @@ process FusionCatcher {
    *
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir+"/fusions/fusioncatcher", mode: 'copy'
 
   input:
@@ -661,8 +661,8 @@ process FastQC {
    *   - *_fastqc.html: Reportes HTML de FastQC.
    */
   cache 'lenient'
-  container 'ariel-env'
-  publishDir params.reportsDir+"/${label}", mode: 'copy'
+  container 'ariel-env:latest'
+  publishDir params.reportsDir, mode: 'copy'
 
   input:
     tuple val(sample), file(R1), file(R2)
@@ -699,7 +699,7 @@ process Fastp {
    *   - {sample}_fastp.html: Reporte HTML de Fastp.
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir params.resultsDir+"/trimmed", mode: 'copy', pattern: "*.fq.gz"
   publishDir params.reportsDir+"/afterTrimm", mode: 'copy', pattern: "*.{html,json}"
 
@@ -735,7 +735,7 @@ process MultiQC {
    *   - multiqc_report.html: Reporte HTML interactivo de MultiQC.
    */
   cache 'lenient'
-  container 'ariel-env'
+  container 'ariel-env:latest'
   publishDir { outdir }, mode: 'copy'
 
   input:

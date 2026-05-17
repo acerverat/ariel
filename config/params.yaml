@@ -1,15 +1,16 @@
 # Parametros del flujo de trabajo ARIEL.
+# Generado por scripts/generaParams.sh
 # Pasar a Nextflow con: nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
 
 # Rutas de entrada
-runSampleSheet: ""       # TSV con columnas Sample, R1, R2
-referenceDir:   ""       # Directorio con las referencias (generado por scripts/generaReferencias.sh)
-tpmPanel:       ""       # Tabla de TPMs de referencia (panel de genes)
+runSampleSheet: "test_sample_sheet.tsv"
+referenceDir:   "~/Pruebas_Reporte_LLAB/referencias/"
+tpmPanel:       "~/Pruebas_Reporte_LLAB/datos/tpmPanel_fixed.tsv"
 
 # Rutas de salida
-resultsDir: ""           # Directorio de resultados del pipeline
-reportsDir: ""           # Directorio de reportes de QC (FastQC, MultiQC, Fastp)
+resultsDir: "./resultados"
+reportsDir: "./reportes"
 
 # Hilos
-threadsSTAR:    4
+threadsSTAR:    1
 threadsRascall: 4
