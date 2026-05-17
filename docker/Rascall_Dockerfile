@@ -23,7 +23,7 @@ RUN add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-c
 RUN apt-get -y install r-base
 RUN apt-get -y install libssl-dev libcurl4-openssl-dev unixodbc-dev libxml2-dev libmariadb-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 RUN R -e 'install.packages("xml2", repos="https://cloud.r-project.org", dependencies=TRUE, INSTALL_opts=c("--no-lock"))'
-RUN R -e 'install.packages("tidyverse", repos="https://cloud.r-project.org", dependencies=TRUE); if (!requireNamespace("tidyverse", quietly=TRUE)) stop("tidyverse installation failed")'
+RUN R -e 'pkgs <- c("dplyr","ggplot2","tidyr","readr","purrr","tibble","stringr","forcats"); install.packages(pkgs, repos="https://cloud.r-project.org"); missing <- pkgs[!sapply(pkgs, requireNamespace, quietly=TRUE)]; if (length(missing)) stop(paste("failed to install:", paste(missing, collapse=", ")))'
 RUN R -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")' && \
     R -e 'BiocManager::install(c("Biostrings", "rtracklayer"))' 
 
