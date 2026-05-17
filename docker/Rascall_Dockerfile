@@ -28,7 +28,7 @@ RUN R -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")' 
     R -e 'BiocManager::install(c("Biostrings", "rtracklayer"))' 
 
 ## Create virtual environment
-ENV VIRTUAL_ENV=$HOME/.virtualenvs/km
+ENV VIRTUAL_ENV=/root/.virtualenvs/km
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
@@ -63,13 +63,13 @@ RUN ./configure --prefix=/usr/local
 RUN make && \
     make install
 
-WORKDIR ${HOME}/
+WORKDIR /root
 RUN rm -rf /docker
 ENV PATH="${PATH}:/usr/local/bin"
 
 ## Download RaScALL
 RUN git clone https://github.com/jimmybgammyknee/RaScALL.git
 
-WORKDIR ${HOME}
+WORKDIR /root
 
 ENTRYPOINT [ "bash" ]
