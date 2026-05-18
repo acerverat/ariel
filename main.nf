@@ -63,7 +63,7 @@ workflow {
 
   // ExprClusters fenera la matriz de expresion
   ExprClusters(params.runSampleSheet, salmon_ch,
-               file("${params.referenceDir}/GRCh38_no_alt/geneId_transcriptId_geneName.tsv"),
+               file("${params.referenceDir}/geneId_transcriptId_geneName.tsv"),
                params.tpmPanel)
 
   // a partir de Fastp.out.reads, Rascall busca fusiones.
@@ -101,9 +101,7 @@ workflow {
   // Fungi analiza y genera un consenso de la lista de FusionList.
   Fungi(FusionList.out.list)
    
-  Rascall.out.results.view()
-  ExprClusters.out.clusters.view()  
-  // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall. 
+  // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall.
   FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters)
 
   // MultiQC final: FastQC (antes y despues) + Fastp

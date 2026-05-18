@@ -27,8 +27,9 @@ RUN R -e 'pkgs <- c("dplyr","ggplot2","tidyr","readr","purrr","tibble","stringr"
 RUN R -e 'install.packages("BiocManager", repos="https://cloud.r-project.org")' && \
     R -e 'BiocManager::install(c("Biostrings", "rtracklayer"))' 
 
-## Create virtual environment
-ENV VIRTUAL_ENV=/root/.virtualenvs/km
+## Create virtual environment in a world-accessible location
+RUN mkdir -p /opt/rascall/.virtualenvs
+ENV VIRTUAL_ENV=/opt/rascall/.virtualenvs/km
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
@@ -68,8 +69,17 @@ RUN rm -rf /docker
 ENV PATH="${PATH}:/usr/local/bin"
 
 ## Download RaScALL
-RUN git clone https://github.com/jimmybgammyknee/RaScALL.git
+RUN git clone https://github.com/jimmybgammyknee/RaScALL.git /RaScALL
 
-WORKDIR /root
+## Replace library(tidyverse) with individual package loads since the meta-package
+## is not installable on Ubuntu 20.04 (ragg/googledrive build failures)
+RUN sed -i 's|suppressMessages(library(tidyverse, warn.conflicts = F, quietly = T))|suppressPackageStartupMessages({library(dplyr);library(ggplot2);library(tidyr);library(readr);library(purrr);library(tibble);library(stringr);library(forcats)})|' /RaScALL/bin/filter_km_output.R
+
+## Pre-create the output mount point and make the tree world-accessible
+## /opt/rascall/output is bind-mounted at runtime; 777 lets the non-root user
+## write there even if the bind mount is not applied (fallback safety)
+RUN mkdir -p /opt/rascall/output && chmod -R 755 /opt/rascall && chmod 777 /opt/rascall /opt/rascall/output
+
+WORKDIR /opt/rascall
 
 ENTRYPOINT [ "bash" ]

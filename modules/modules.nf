@@ -44,6 +44,8 @@ process FusionSummary {
 
   script:
   """
+    export TMPDIR=\$PWD
+
     # Paso 1: genera hallazgos_principales.csv, fusiones_otras.csv y rascall_data.csv
     generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}/rascall
 
@@ -91,6 +93,8 @@ process ExprClusters {
 
   script:
   """
+    export TMPDIR=\$PWD
+
     # filtra caracteres para que preExprCluster.R pueda leer las rutas
     salmoncsv=\$(echo ${SalmonCollect} | tr -d ' ' | tr -d '[' | tr -d ']')
 
@@ -135,7 +139,7 @@ process Rascall {
   tuple val(sample), file(R1), file(R2)
 
   output:
-  tuple val(sample), file("rascall_dir/*/*/*final_variants.csv"), emit: results
+  tuple val(sample), file("rascall_dir/*/*final_variants.csv"), emit: results
 
   script:
   """
@@ -149,22 +153,25 @@ process Rascall {
     r1=\$( basename ${R1} )
     r2=\$( basename ${R2} )
 
-    # se crea una ruta simbolica de la ruta real de R1 y R2 a rascall_dir
-    ln -s /data/\${r1} rascall_dir/${sample}/${sample}_R1.fastq.gz
-    ln -s /data/\${r2} rascall_dir/${sample}/${sample}_R2.fastq.gz
-    
-    # se utiliza el contenedor de docker que contiene RaScALL, montando el direcorio de las rutas reales de R1 y R2 (data) y rascall_dir para cada Sample
-    # con los fastq de las muestras 
+    # se utiliza el contenedor de docker que contiene RaScALL
+    # WORKDIR del contenedor es /opt/rascall, por lo que run_km.sh resuelve:
+    #   VIRTUAL_ENV=/opt/rascall/.virtualenvs/km  y  OUTPUTS=/opt/rascall/output
+    # rascall_dir/ del host se monta en /opt/rascall/output/ para que los resultados
+    # queden disponibles en el directorio de trabajo de Nextflow
     docker run -u \$(id -u):\$(id -g) --rm \
-	       -v \${data}:/data \
-               -v \$PWD/rascall_dir/${sample}:/output \
+               -w /opt/rascall \
+               -e HOME=/tmp \
+               -v \${data}:/data \
+               -v \$PWD/rascall_dir:/opt/rascall/output \
                rascall:1.0 \
-    -c "bash /RaScALL/run_km.sh /output/${sample}_R1.fastq.gz /output/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/DUX4;
-        bash /RaScALL/run_km.sh /output/${sample}_R1.fastq.gz /output/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/Fusion;
-        bash /RaScALL/run_km.sh /output/${sample}_R1.fastq.gz /output/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/IGH_fusion;
-        bash /RaScALL/run_km.sh /output/${sample}_R1.fastq.gz /output/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/SNV;
-        bash /RaScALL/run_km.sh /output/${sample}_R1.fastq.gz /output/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/focal_deletions;
-        Rscript /RaScALL/bin/filter_km_output.R /output"
+    -c "ln -sf /data/\${r1} /opt/rascall/output/${sample}/${sample}_R1.fastq.gz;
+        ln -sf /data/\${r2} /opt/rascall/output/${sample}/${sample}_R2.fastq.gz;
+        bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/DUX4;
+        bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/Fusion;
+        bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/IGH_fusion;
+        bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/SNV;
+        bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/focal_deletions;
+        Rscript /RaScALL/bin/filter_km_output.R /opt/rascall/output/${sample}"
   """
 }
 
@@ -213,15 +220,22 @@ process Fungi {
   script:
     """
     outdir=\$PWD
+    fcdb="${params.referenceDir}/fusioncatcher_db"
 
     # analisis de fusiones
-    docker run -t --rm -v ${workDir}:${workDir} \
-    ariel-env \
-    fungi-fusion-analyzer -c myConfig.txt -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0 
-    
+    # se monta fusioncatcher_db sobre /opt/fusioncatcher/data para que exons.txt
+    # (generado durante la descarga de la db) este disponible para fungi
+    docker run -t --rm \
+    -v ${workDir}:${workDir} \
+    -v \${fcdb}:/opt/fusioncatcher/data \
+    ariel-env:latest \
+    fungi-fusion-analyzer -c myConfig.txt -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
+
     # consenso
-    docker run -t --rm -v ${workDir}:${workDir} \
-    ariel-env \
+    docker run -t --rm \
+    -v ${workDir}:${workDir} \
+    -v \${fcdb}:/opt/fusioncatcher/data \
+    ariel-env:latest \
     fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated
     """
 }
@@ -421,6 +435,8 @@ process Arriba {
 
   script:
   """
+    export TMPDIR=\$PWD
+
     # Agrega variables con los nombres de las rutas que requiere
     gtf=\$PWD/${referenceDir}/gencode.v42.annotation.gtf
     fasta=\$PWD/${referenceDir}/cicero_references/Homo_sapiens/GRCh38_no_alt/FASTA/GRCh38_no_alt.fa
@@ -633,7 +649,7 @@ process FusionCatcher {
 
     # Ejecuta FusionCatcher apuntando a la base de datos del directorio de referencias
     /opt/fusioncatcher/bin/fusioncatcher.py \
-      -d \$PWD/${referenceDir}/fusioncatcher_db \
+      -d \$PWD/${referenceDir}/fusioncatcher_db/current \
       -i \$PWD/input \
       -o \$PWD/${sample}_output
 
@@ -674,7 +690,7 @@ process FastQC {
 
   script:
   """
-    fastqc ${R1} ${R2}
+    fastqc --dir . ${R1} ${R2}
   """
 }
 

@@ -16,7 +16,7 @@ library(vroom)
 args <- commandArgs(trailingOnly = TRUE)
 
 files  <- unlist(strsplit(args[1], ","))
-nombres <- gsub(".*/(CA[0-9]+)\\.quant\\.sf", "\\1", files)
+nombres <- sub("\\.quant\\.sf$", "", basename(files))
 names(files) <- nombres
 
 archivoRef <- read.table(args[2], sep = "\t", header = TRUE)
@@ -25,7 +25,7 @@ tx2gene    <- archivoRef[, c("transcript_id", "gene_id")]
 txi <- tximport(files,
                 type          = "salmon",
                 tx2gene       = tx2gene,
-                ignoreTxVersion = FALSE,
+                ignoreTxVersion = TRUE,
                 dropInfReps   = TRUE)
 
 table.out <- txi$abundance
