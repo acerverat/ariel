@@ -149,9 +149,11 @@ RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/opt/fusionca
 
 
 # Instalar Fungi
+# Para forzar actualizacion: docker build --build-arg FUNGI_DATE=$(date +%Y%m%d) ...
+ARG FUNGI_DATE=20260101
 RUN git clone https://alejandra_cervera@bitbucket.org/alejandra_cervera/fungi.git
-RUN cd fungi && git fetch && git checkout v2 
-RUN cd fungi/resources && ./download.sh 
+RUN cd fungi && git fetch && git checkout v2
+RUN cd fungi/resources && ./download.sh
 RUN pip3 install --break-system-packages pandas
 RUN cd /usr/local/lib/fungi && git pull
 RUN ln -s /usr/local/lib/fungi/bin/* /usr/local/bin/
