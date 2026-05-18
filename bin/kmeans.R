@@ -14,11 +14,11 @@ library(vroom)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-sample_sheet <- read.table(args[1], header = TRUE)
+sample_sheet <- read.table(args[1], header = TRUE, check.names = FALSE)
 gene <- args[3]
 k    <- as.integer(args[4])
 
-expr_dir <- read.table(args[2], sep = "\t", header = TRUE, row.names = 1)
+expr_dir <- read.table(args[2], sep = "\t", header = TRUE, row.names = 1, check.names = FALSE)
 tpm <- expr_dir
 tpm[is.na(tpm)] <- 0
 

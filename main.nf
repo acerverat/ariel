@@ -24,6 +24,8 @@ include {
           FusionList;
 	        Fungi;
 	        Rascall;
+          FreeBayes;
+          SnpEff;
           FusionSummary;
           FastQC as FastQC_before;
           FastQC as FastQC_after;
@@ -71,6 +73,12 @@ workflow {
 
   // STAR se utiliza en su modo de alineamiento.
   STAR_aligner(params.referenceDir, params.threadsSTAR, Fastp.out.reads)
+
+  // FreeBayes llama variantes a partir del BAM de STAR.
+  FreeBayes(params.referenceDir, STAR_aligner.out.BAM)
+
+  // SnpEff anota las variantes con informacion funcional.
+  SnpEff(FreeBayes.out.vcf)
 
   // RNApeg se utiliza para busqueda de uniones y fusiones, utiliza los ".bam" resultado de STAR_aligner.
   RNApeg(params.referenceDir,STAR_aligner.out.BAM)

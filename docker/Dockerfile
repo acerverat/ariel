@@ -160,6 +160,19 @@ RUN wget https://raw.githubusercontent.com/ndaniel/fusioncatcher/refs/heads/mast
 RUN cp label_fusion_genes_znf.py /opt/fusioncatcher/bin/
 RUN chmod +x /opt/fusioncatcher/bin/label_fusion_genes_znf.py
 
+# FreeBayes - llamado de variantes
+RUN wget -q https://github.com/freebayes/freebayes/releases/download/v1.3.10/freebayes-1.3.10-linux-amd64-static.gz && \
+    gunzip freebayes-1.3.10-linux-amd64-static.gz && \
+    mv freebayes-1.3.10-linux-amd64-static /usr/local/bin/freebayes && \
+    chmod +x /usr/local/bin/freebayes
+
+# SnpEff - anotacion de variantes
+RUN apt-get install -y unzip && \
+    cd /opt && \
+    wget -q https://snpeff-public.s3.amazonaws.com/versions/snpEff_latest_core.zip && \
+    unzip snpEff_latest_core.zip && \
+    rm snpEff_latest_core.zip
+
 ENV TZ="America/Mexico_City"
 
 CMD ["bash", "-l"]

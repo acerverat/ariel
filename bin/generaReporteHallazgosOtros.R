@@ -28,13 +28,16 @@ crlf2_expr <- read.table(args[5], header = TRUE, sep = "\t") |>
 message("Reading cicero ITD files from: ", args[3])
 cicero_itd_files <- list.files(args[3], pattern = "_all_ITD\\.txt$", full.names = TRUE)
 
-hallazgos_crlf2 <- lapply(cicero_itd_files, \(f) {
-  df <- read.table(f, header = TRUE, sep = "\t", quote = "", fill = TRUE)
-  if (any(grepl("CRLF2", df$geneA))) {
-    data.frame(Muestra = sub("_all_ITD\\.txt$", "", basename(f)),
-               Duplicacion_CRLF2 = "CRLF2 dup")
-  }
-}) |>
+hallazgos_crlf2 <- c(
+  list(tibble(Muestra = character(), Duplicacion_CRLF2 = character())),
+  lapply(cicero_itd_files, \(f) {
+    df <- read.table(f, header = TRUE, sep = "\t", quote = "", fill = TRUE)
+    if (any(grepl("CRLF2", df$geneA))) {
+      tibble(Muestra = sub("_all_ITD\\.txt$", "", basename(f)),
+             Duplicacion_CRLF2 = "CRLF2 dup")
+    }
+  })
+) |>
   bind_rows()
 
 ###### Filter fusions

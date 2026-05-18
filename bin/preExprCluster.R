@@ -50,7 +50,7 @@ write.table(table.out.names,
 tablaGenes          <- table.out.names
 tablaGenes$gene_id  <- sub("\\..*", "", tablaGenes$gene_id)
 tablaGenes$gene_name <- NULL
-colnames(tablaGenes) <- sub("\\..*", "", colnames(tablaGenes))
+colnames(tablaGenes) <- c("gene_id", nombres)
 
 tabla92 <- read.table(args[3], sep = "\t", header = TRUE)
 

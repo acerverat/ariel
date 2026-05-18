@@ -737,6 +737,98 @@ process Fastp {
   """
 }
 
+process FreeBayes {
+  /*
+   *                        ---- FreeBayes ----
+   *
+   * FreeBayes realiza el llamado de variantes (SNVs e indels) a partir del
+   * BAM generado por STAR_aligner.
+   *
+   * Input:
+   *   - referenceDir (path): Directorio de referencias; debe contener la FASTA
+   *       en cicero_references/Homo_sapiens/GRCh38_no_alt/FASTA/GRCh38_no_alt.fa
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - bam (file): Archivo BAM alineado y ordenado.
+   *       - bai (file): Indice del BAM.
+   *
+   * Output:
+   *   - tuple (emit: vcf):
+   *       - sample (val): Nombre de la muestra.
+   *       - {sample}.vcf (path): Variantes en formato VCF.
+   */
+  cache 'lenient'
+  container 'ariel-env:latest'
+  publishDir params.resultsDir + "/variants/freebayes", mode: 'copy'
+
+  input:
+    path referenceDir
+    tuple val(sample), file(bam), file(bai)
+
+  output:
+    tuple val(sample), path("${sample}.vcf"), emit: vcf
+
+  script:
+  """
+    fasta=\$PWD/${referenceDir}/cicero_references/Homo_sapiens/GRCh38_no_alt/FASTA/GRCh38_no_alt.fa
+
+    freebayes \
+      -f \${fasta} \
+      --min-alternate-count 3 \
+      --min-alternate-fraction 0.05 \
+      --skip-coverage-above 5000 \
+      ${bam} > ${sample}.vcf
+  """
+}
+
+process SnpEff {
+  /*
+   *                        ---- SnpEff ----
+   *
+   * SnpEff anota las variantes generadas por FreeBayes con informacion
+   * funcional (gen, efecto, impacto).
+   * La base de datos debe descargarse previamente con scripts/references/07_snpeff_db.sh
+   * y se monta en /snpeff_data dentro del contenedor.
+   *
+   * Input:
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - vcf (path): Archivo VCF de FreeBayes.
+   *
+   * Output:
+   *   - tuple (emit: vcf):
+   *       - sample (val): Nombre de la muestra.
+   *       - {sample}_annotated.vcf (path): VCF anotado.
+   *   - {sample}_snpeff_summary.html: Reporte HTML de SnpEff.
+   *   - {sample}_snpeff_genes.txt: Tabla de genes anotados.
+   */
+  cache 'lenient'
+  container 'ariel-env:latest'
+  containerOptions "-v ${file(params.referenceDir).toAbsolutePath()}/snpeff_db:/snpeff_data"
+  publishDir params.resultsDir + "/variants/snpeff", mode: 'copy'
+
+  input:
+    tuple val(sample), path(vcf)
+
+  output:
+    tuple val(sample), path("${sample}_annotated.vcf"), emit: vcf
+    path("${sample}_snpeff_summary.html")
+    path("${sample}_snpeff_genes.txt")
+
+  script:
+  """
+    export TMPDIR=\$PWD
+
+    java -Xmx4g -jar /opt/snpEff/snpEff.jar \
+      -dataDir /snpeff_data \
+      -stats ${sample}_snpeff_summary.html \
+      ${params.snpeffGenome} \
+      ${vcf} > ${sample}_annotated.vcf
+
+    mv snpEff_genes.txt ${sample}_snpeff_genes.txt
+  """
+}
+
 process MultiQC {
   /*
    *                        ---- MultiQC ----
