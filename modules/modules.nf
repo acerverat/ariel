@@ -361,6 +361,7 @@ process STAR_aligner {
           file("${sample}_Aligned.sortedByCoord.out.bam"),
           file("${sample}_Aligned.sortedByCoord.out.bam.bai"),
           emit: BAM
+    path("${sample}_Log.final.out"), emit: logs
 
 
   script:
