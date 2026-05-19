@@ -226,6 +226,7 @@ process Fungi {
     # se monta fusioncatcher_db sobre /opt/fusioncatcher/data para que exons.txt
     # (generado durante la descarga de la db) este disponible para fungi
     docker run -t --rm \
+    -u \$(id -u):\$(id -g) \
     -v ${workDir}:${workDir} \
     -v \${fcdb}:/opt/fusioncatcher/data \
     ariel-env:latest \
@@ -233,6 +234,7 @@ process Fungi {
 
     # consenso
     docker run -t --rm \
+    -u \$(id -u):\$(id -g) \
     -v ${workDir}:${workDir} \
     -v \${fcdb}:/opt/fusioncatcher/data \
     ariel-env:latest \
@@ -776,7 +778,6 @@ process FreeBayes {
       -f \${fasta} \
       --min-alternate-count 3 \
       --min-alternate-fraction 0.05 \
-      --skip-coverage-above 5000 \
       ${bam} > ${sample}.vcf
   """
 }
@@ -825,7 +826,7 @@ process SnpEff {
       ${params.snpeffGenome} \
       ${vcf} > ${sample}_annotated.vcf
 
-    mv snpEff_genes.txt ${sample}_snpeff_genes.txt
+    mv ${sample}_snpeff_summary.genes.txt ${sample}_snpeff_genes.txt
   """
 }
 

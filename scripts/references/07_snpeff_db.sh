@@ -7,7 +7,7 @@ set -e
 # /snpeff_data dentro del contenedor en tiempo de ejecucion del pipeline.
 
 rutaReferencias="$1"
-genome="${2:-GRCh38}"
+genome="${2:-GRCh38.p14}"
 outdir="$rutaReferencias/GRCh38_no_alt"
 snpeffdb="$outdir/snpeff_db"
 sentinel="$snpeffdb/${genome}/snpEffectPredictor.bin"
