@@ -55,8 +55,9 @@ RUN Rscript -e 'install.packages("dplyr")'
 RUN Rscript -e 'install.packages("ranger")' 
 RUN Rscript -e 'install.packages("tidyverse",dependencies=T)'
 RUN Rscript -e 'BiocManager::install("tximport")'
-RUN Rscript -e 'install.packages("readr")'
-RUN Rscript -e 'install.packages("vroom")'
+RUN Rscript -e 'install.packages("crayon")'
+RUN Rscript -e 'install.packages("readr", dependencies=TRUE)'
+RUN Rscript -e 'install.packages("vroom", dependencies=TRUE)'
 
 WORKDIR /usr/local/lib
 

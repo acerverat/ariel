@@ -21,6 +21,7 @@ echo "[snpeff_db] Descargando base de datos $genome..."
 mkdir -p "$snpeffdb"
 
 docker run --rm \
+    -u "$(id -u):$(id -g)" \
     -v "$snpeffdb":/snpeff_data \
     ariel-env \
     java -jar /opt/snpEff/snpEff.jar download \

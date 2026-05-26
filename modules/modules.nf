@@ -31,6 +31,7 @@ process FusionSummary {
    *       SNV_RaScALL, Deleciones_Focales_Rascall, DUX4r_Rascall, Duplicacion_CRLF2
    */
   cache 'lenient'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/reports", mode: 'copy'
 
   input:
@@ -78,7 +79,7 @@ process ExprClusters {
   publishDir params.resultsDir+"/ExprClusters", mode: 'copy'
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*png"
   publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*cluster*"
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
 
   input:
     path runSampleSheet
@@ -114,7 +115,7 @@ process Rascall {
   * RaScALL detecta fusiones, SNVs, fusiones IGH, deleciones focales y DUX4.
   * Comparado con los otros metodos de busqueda de fusiones, este se especializa
   * en Leucemia Linfoblastica Aguda, usando su propia base de datos.
-  * Rascall utiliza el contenedor de Docker: rascall:1.0
+  * Rascall utiliza el contenedor de Docker: acerverat/rascall:1.0
   * Genera un reporte general y varios reportes en su directorio de trabajo.
   *
   * Input:
@@ -163,7 +164,7 @@ process Rascall {
                -e HOME=/tmp \
                -v \${data}:/data \
                -v \$PWD/rascall_dir:/opt/rascall/output \
-               rascall:1.0 \
+               acerverat/rascall:1.0 \
     -c "ln -sf /data/\${r1} /opt/rascall/output/${sample}/${sample}_R1.fastq.gz;
         ln -sf /data/\${r2} /opt/rascall/output/${sample}/${sample}_R2.fastq.gz;
         bash /RaScALL/run_km.sh /opt/rascall/output/${sample}/${sample}_R1.fastq.gz /opt/rascall/output/${sample}/${sample}_R2.fastq.gz ${params.threadsRascall} /RaScALL/ALL_targets/DUX4;
@@ -175,17 +176,21 @@ process Rascall {
   """
 }
 
-process Fungi { 
-  
+process Fungi {
+
  /*
   *                        ---- Fungi ----
-  * 
+  *
   * Fungi utiliza scripts del repositorio de Fungi de la Dra. Alejandra Cervera.
   * Primero analiza los reportes de Arriba, FusionCatcher y Cicero, y despues hace un
   * consenso.
   * Utiliza los scripts fungi-fusion-analyzer y fungi-fusion-consensus de Fungi instalado
   * en el contenedor de Docker ariel-env.
-  * 
+  *
+  * containerOptions monta workDir para que fungi-fusion-analyzer pueda acceder a las
+  * rutas absolutas de los reportes de fusiones generados por otras tareas, y monta
+  * fusioncatcher_db en /opt/fusioncatcher/data (requerido por fungi para exons.txt).
+  *
   *
   * Input:
   *   - tuple:
@@ -195,9 +200,9 @@ process Fungi {
   *
   * Output:
   *   - tuple (emit: results):
-  *       - bp_consensus_report.tsv (path): 
+  *       - bp_consensus_report.tsv (path):
   *		Reporte de los breakpoints con los campos:
-  *			FusionName, Sample, best_bp Methods_count, Methods_list, Supporting_reads, same_score_bp, 
+  *			FusionName, Sample, best_bp Methods_count, Methods_list, Supporting_reads, same_score_bp,
   * 			Sample_occurrence_method_score, SampleCount, best_by_sample_count, same_score_sample_count,
   *			Sample_occurence_sample_score, annotations, additional_info
   *
@@ -208,7 +213,7 @@ process Fungi {
   *
   *
   */
-  cache 'lenient' 
+  cache 'lenient'
   publishDir params.resultsDir+"/fungi", mode: 'copy'
 
   input:
@@ -217,28 +222,27 @@ process Fungi {
   output:
     path("fungi_output/consensus/bp_consensus_report.tsv"), emit: bp
     path("fungi_output/consensus/combined_fusions_report.tsv")
+
   script:
     """
     outdir=\$PWD
     fcdb="${params.referenceDir}/fusioncatcher_db"
+    config="\${outdir}/fungi_config.txt"
 
-    # analisis de fusiones
-    # se monta fusioncatcher_db sobre /opt/fusioncatcher/data para que exons.txt
-    # (generado durante la descarga de la db) este disponible para fungi
-    docker run -t --rm \
-    -u \$(id -u):\$(id -g) \
-    -v ${workDir}:${workDir} \
-    -v \${fcdb}:/opt/fusioncatcher/data \
-    ariel-env:latest \
-    fungi-fusion-analyzer -c myConfig.txt -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
+    # Minimal config: fungi needs FUSIONCATCHER_HOME to locate bin/ and data/current/
+    cat > "\${config}" <<'FUNGI_CFG'
+FUSIONCATCHER_HOME=/opt/fusioncatcher
+FUNGI_CFG
 
-    # consenso
-    docker run -t --rm \
-    -u \$(id -u):\$(id -g) \
-    -v ${workDir}:${workDir} \
-    -v \${fcdb}:/opt/fusioncatcher/data \
-    ariel-env:latest \
-    fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated
+    docker run --rm \
+        -u \$(id -u):\$(id -g) \
+        -e TERM=xterm \
+        -v ${workDir}:${workDir} \
+        -v \${fcdb}:/opt/fusioncatcher/data \
+        acerverat/ariel-env:latest \
+        bash -c "set -e
+        fungi-fusion-analyzer -c \${config} -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
+        fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated"
     """
 }
 
@@ -263,7 +267,7 @@ process FusionList {
  *
  */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/fusions", mode: 'copy'
 
   input:
@@ -301,7 +305,7 @@ process Salmon {
    *
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/quantification", mode: 'copy'
 
   input:
@@ -349,7 +353,7 @@ process STAR_aligner {
    *       - {sample}_Aligned.sortedByCoord.out.bam.bai (file): Archivo BAI indice del BAM. 
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/alignments", mode: 'copy'
   beforeScript 'chmod o+rw .'
 
@@ -425,7 +429,7 @@ process Arriba {
    *
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir + "/fusions/arriba", mode: 'copy'
 
   input:
@@ -630,7 +634,7 @@ process FusionCatcher {
    *
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/fusions/fusioncatcher", mode: 'copy'
 
   input:
@@ -680,7 +684,7 @@ process FastQC {
    *   - *_fastqc.html: Reportes HTML de FastQC.
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.reportsDir, mode: 'copy'
 
   input:
@@ -718,7 +722,7 @@ process Fastp {
    *   - {sample}_fastp.html: Reporte HTML de Fastp.
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir+"/trimmed", mode: 'copy', pattern: "*.fq.gz"
   publishDir params.reportsDir+"/afterTrimm", mode: 'copy', pattern: "*.{html,json}"
 
@@ -760,7 +764,7 @@ process FreeBayes {
    *       - {sample}.vcf (path): Variantes en formato VCF.
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir params.resultsDir + "/variants/freebayes", mode: 'copy'
 
   input:
@@ -804,7 +808,7 @@ process SnpEff {
    *   - {sample}_snpeff_genes.txt: Tabla de genes anotados.
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   containerOptions "-v ${file(params.referenceDir).toAbsolutePath()}/snpeff_db:/snpeff_data"
   publishDir params.resultsDir + "/variants/snpeff", mode: 'copy'
 
@@ -824,9 +828,13 @@ process SnpEff {
       -dataDir /snpeff_data \
       -stats ${sample}_snpeff_summary.html \
       ${params.snpeffGenome} \
-      ${vcf} > ${sample}_annotated.vcf
+      ${vcf} > ${sample}_snpeff.vcf
 
     mv ${sample}_snpeff_summary.genes.txt ${sample}_snpeff_genes.txt
+
+    java -jar /opt/snpEff/SnpSift.jar annotate \
+      /snpeff_data/clinvar.vcf.gz \
+      ${sample}_snpeff.vcf > ${sample}_annotated.vcf
   """
 }
 
@@ -845,7 +853,7 @@ process MultiQC {
    *   - multiqc_report.html: Reporte HTML interactivo de MultiQC.
    */
   cache 'lenient'
-  container 'ariel-env:latest'
+  container 'acerverat/ariel-env:latest'
   publishDir { outdir }, mode: 'copy'
 
   input:

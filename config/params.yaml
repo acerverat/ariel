@@ -1,19 +1,16 @@
 # Parametros del flujo de trabajo ARIEL.
-# Generado por scripts/generaParams.sh
-# Pasar a Nextflow con: nextflow run main.nf -c config/nextflow.config -params-file config/params.yaml
+# Referencia de parametros disponibles — los valores reales se generan con run.sh.
+# Pasar a Nextflow con: -params-file /ruta/a/params.yaml
 
 # Rutas de entrada
-runSampleSheet: "test_sample_sheet.tsv"
-referenceDir:   "~/Pruebas_Reporte_LLAB/referencias/"
-tpmPanel:       "~/Pruebas_Reporte_LLAB/datos/tpmPanel_fixed.tsv"
+runSampleSheet: "/PATH/TO/sample_sheet.tsv"
+referenceDir:   "/PATH/TO/GRCh38_no_alt"
+tpmPanel:       "/PATH/TO/tpmPanel.tsv"
 
 # Rutas de salida
-resultsDir: "./resultados"
-reportsDir: "./reportes"
+resultsDir: "/PATH/TO/resultados"
+reportsDir: "/PATH/TO/reportes"
 
 # Hilos
-threadsSTAR:    1
+threadsSTAR:    4
 threadsRascall: 4
-
-# Anotacion de variantes
-snpeffGenome:   "GRCh38.p14"
