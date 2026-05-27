@@ -19,7 +19,6 @@ include {
           Salmon;
           Arriba;
           FusionCatcher;
-          FusionList;
 	        Fungi;
 	        Rascall;
           FreeBayes;
@@ -93,11 +92,8 @@ workflow {
                      .concat(Arriba.out.fusions, FusionCatcher.out.fusions)
                      .collect()
 
-  // FusionList genera una tabla con los resultados por muestra de los metodos de busqueda de Fusiones (FusionCatcher, Arriba y Cicero) para que Fungi los pueda procesar.
-  FusionList(fusions_ch)  
-
-  // Fungi analiza y genera un consenso de la lista de FusionList.
-  Fungi(FusionList.out.list)
+  // Fungi genera el input-list.txt, analiza y genera un consenso de las fusiones.
+  Fungi(fusions_ch)
    
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall.
   FusionSummary(params.runSampleSheet, Fungi.out.bp, Rascall.out.results.collect())
