@@ -193,41 +193,45 @@ process Fungi {
   *
   *
   * Input:
-  *   - tuple:
-  *       - sample (val): Nombre de la muestra.
-  *       - R1 (file): Lecturas forward (FASTQ).
-  *       - R2 (file): Lecturas reverse (FASTQ).
+  *   - fusionList (val): Lista plana con elementos en grupos de 3:
+  *       [sample, tool, file, sample, tool, file, ...]
   *
   * Output:
-  *   - tuple (emit: results):
-  *       - bp_consensus_report.tsv (path):
-  *		Reporte de los breakpoints con los campos:
-  *			FusionName, Sample, best_bp Methods_count, Methods_list, Supporting_reads, same_score_bp,
-  * 			Sample_occurrence_method_score, SampleCount, best_by_sample_count, same_score_sample_count,
-  *			Sample_occurence_sample_score, annotations, additional_info
+  *   - bp_consensus_report.tsv (path, emit: bp):
+  *       Reporte de los breakpoints con los campos:
+  *         FusionName, Sample, best_bp, Methods_count, Methods_list, Supporting_reads,
+  *         same_score_bp, Sample_occurrence_method_score, SampleCount, best_by_sample_count,
+  *         same_score_sample_count, Sample_occurence_sample_score, annotations, additional_info
   *
-  *       - combined_fusions_report.tsv (path):
-  *		Reporte con los campos:
-  *			FusionName, bp_coordinates, Sample, Supporting_reads, Methods Sample_occurrence, annotations,
-  *			additional_info, MethodsCount, SampleCount
+  *   - combined_fusions_report.tsv (path):
+  *       Reporte con los campos:
+  *         FusionName, bp_coordinates, Sample, Supporting_reads, Methods, Sample_occurrence,
+  *         annotations, additional_info, MethodsCount, SampleCount
   *
+  *   - input-list.txt (path): TSV con Sample, Tool y File para cada fusion detectada.
   *
   */
   cache 'lenient'
   publishDir params.resultsDir+"/fungi", mode: 'copy'
+  publishDir params.resultsDir+"/fusions", mode: 'copy', pattern: 'input-list.txt'
 
   input:
-    val list
+    val fusionList
 
   output:
     path("fungi_output/consensus/bp_consensus_report.tsv"), emit: bp
     path("fungi_output/consensus/combined_fusions_report.tsv")
+    path('input-list.txt')
 
   script:
     """
     outdir=\$PWD
     fcdb="${params.referenceDir}/fusioncatcher_db"
     config="\${outdir}/fungi_config.txt"
+
+    # Genera input-list.txt a partir de la lista plana [sample, tool, file, ...]
+    echo -e "Sample\tTool\tFile" > input-list.txt
+    echo "${fusionList.join(',')}" | sed -E 's/(,[^,]*,[^,]*),/\\1\\n/g' | tr ',' '\\t' >> input-list.txt
 
     # Minimal config: fungi needs FUSIONCATCHER_HOME to locate bin/ and data/current/
     cat > "\${config}" <<'FUNGI_CFG'
@@ -241,47 +245,9 @@ FUNGI_CFG
         -v \${fcdb}:/opt/fusioncatcher/data \
         acerverat/ariel-env:latest \
         bash -c "set -e
-        fungi-fusion-analyzer -c \${config} -o \${outdir}/fungi_output --input-list ${list} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
+        fungi-fusion-analyzer -c \${config} -o \${outdir}/fungi_output --input-list \${outdir}/input-list.txt annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
         fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated"
     """
-}
-
-
-process FusionList {
-/*
- *                        ---- FusionList ----
- * 
- * Convierte una lista de fusiones en formato CSV de los metodos de busqueda de fusiones
- * Arriba, FusionCatcher y Cicero a un TSV compatible con Fungi.
- *
- * Input:
- *   - fusionList (val): Lista plana con elementos en grupos de 3:
- *       [sample, tool, file, sample, tool, file, ...]
- *
- * Output:
- *   - input-list.txt (path):
- *   Archivo TSV con formato:
- *         CA001	cicero	/ruta...
- *         CA002  arriba   /ruta...
- *         CA003  fusioncatcher  /ruta...
- *
- */
-  cache 'lenient'
-  container 'acerverat/ariel-env:latest'
-  publishDir params.resultsDir+"/fusions", mode: 'copy'
-
-  input:
-    val fusionList
-
-  output:
-    path 'input-list.txt', emit: list
-
-  script:                    
-  """
-    # Convierte fusionList de una lista con las fusiones por metodo a un formato tsv para que Fungi lo pueda recibir
-    echo -e "Sample\tTool\tFile" > input-list.txt
-    echo "${fusionList.join(',')}" | sed -E 's/(,[^,]*,[^,]*),/\\1\\n/g' | tr ',' '\\t' >> input-list.txt
-  """
 }
 
 process Salmon {
