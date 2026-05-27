@@ -1,5 +1,5 @@
 /*
- * Flujo de trabajo 
+ * Flujo de trabajo
  * En este archivo se ejecutan los metodos de busqueda de fusiones:
  * -RNApeg
  * -Cicero
@@ -7,8 +7,6 @@
  * -FusionCatcher
  * -Rascall
  * Cuantifica con Salmon.
- * 
- * Expresion Cluster genera clusters, matriz de TPMs y log2TPM
  */
 nextflow.enable.dsl=2
 
@@ -18,7 +16,6 @@ include {
           RNApeg;
           Cicero;
           Salmon;
-          ExprClusters;
           Arriba;
           FusionCatcher;
           FusionList;
@@ -59,14 +56,6 @@ workflow {
 
   // Salmon cuantifica las muestras.
   Salmon(params.referenceDir, Fastp.out.reads)
-
-  // "salmon_ch" espera a obtener todos los resultados antes que "PreExprCluster" los reciba.
-  salmon_ch = Salmon.out.sf.collect()
-
-  // ExprClusters fenera la matriz de expresion
-  ExprClusters(params.runSampleSheet, salmon_ch,
-               file("${params.referenceDir}/geneId_transcriptId_geneName.tsv"),
-               params.tpmPanel)
 
   // a partir de Fastp.out.reads, Rascall busca fusiones.
   Rascall(Fastp.out.reads)
@@ -110,7 +99,7 @@ workflow {
   Fungi(FusionList.out.list)
    
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall.
-  FusionSummary(params.runSampleSheet,Fungi.out.bp,Rascall.out.results.collect(),ExprClusters.out.clusters)
+  FusionSummary(params.runSampleSheet, Fungi.out.bp, Rascall.out.results.collect())
 
   // MultiQC final: FastQC (antes y despues) + Fastp + STAR
   reports_ch = FastQC_before.out.qc

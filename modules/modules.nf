@@ -13,22 +13,17 @@ process FusionSummary {
   /*
    *                        ---- FusionSummary ----
    *
-   * FusionSummary genera los reportes finales del pipeline en dos pasos secuenciales.
+   * FusionSummary genera el reporte principal del pipeline.
    *
    * Input:
    *   - SampleSheet (path): TSV con las muestras a analizar.
    *   - bp_consensus (path): Reporte de Fungi con los breakpoints.
    *   - rascall (val): Archivos de resultados de RaScALL (dependencia de ejecucion).
-   *   - cluster (path): Tabla log2tpm_CRLF2_3_clusters.tsv de ExprClusters.
    *
    * Output:
    *   - hallazgos_principales.csv:
    *       Muestra, Fusion, Metodos, Subtipo, Subtipo_Emergente, Punto_de_corte,
    *       SR_Arriba, SR_Cicero, SR_Fusioncatcher
-   *
-   *   - hallazgos_otros.csv:
-   *       Muestra, Fusion, Metodos, Subtipo, Subtipo_Emergente, CRLF2_expr,
-   *       SNV_RaScALL, Deleciones_Focales_Rascall, DUX4r_Rascall, Duplicacion_CRLF2
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
@@ -38,20 +33,14 @@ process FusionSummary {
     path SampleSheet
     path bp_consensus
     val rascall
-    path cluster
 
   output:
-    file ('hallazgos_*.csv')
+    file ('hallazgos_principales.csv')
 
   script:
   """
     export TMPDIR=\$PWD
-
-    # Paso 1: genera hallazgos_principales.csv, fusiones_otras.csv y rascall_data.csv
     generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}/rascall
-
-    # Paso 2: genera hallazgos_otros.csv usando los intermedios del paso anterior
-    generaReporteHallazgosOtros.R fusiones_otras.csv rascall_data.csv ${params.resultsDir}/fusions/cicero ${SampleSheet} ${cluster}
   """
 }
 
