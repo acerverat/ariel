@@ -163,6 +163,23 @@ final_cols <- function(df) {
 
 hallazgos_principales <- hallazgos_annotated |> filter(es_principal) |> final_cols()
 
+# Add samples from the sample sheet that have no fusions at all
+missing_samples <- setdiff(samples$Sample, hallazgos_principales$Muestra)
+if (length(missing_samples) > 0) {
+  empty_rows <- tibble(
+    Muestra           = missing_samples,
+    Fusion            = "-",
+    Metodos           = "-",
+    Subtipo           = "-",
+    Subtipo_Emergente = "-",
+    Punto_de_corte    = "-",
+    SR_Arriba         = "-",
+    SR_Cicero         = "-",
+    SR_Fusioncatcher  = "-"
+  )
+  hallazgos_principales <- bind_rows(hallazgos_principales, empty_rows)
+}
+
 # fusiones_otras keeps extra filtering columns needed by generaReporteHallazgosOtros.R
 fusiones_otras <- hallazgos_annotated |>
   filter(!es_principal) |>
