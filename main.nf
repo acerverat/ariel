@@ -60,45 +60,43 @@ workflow {
   // Salmon cuantifica las muestras.
   Salmon(params.referenceDir, Fastp.out.reads)
 
-  // "salmon_ch" espera a obtener todos los resultados antes que "PreExprCluster" los reciba.
+  // "salmon_ch" espera a obtener todos los archivos de expresion para ExprCluster
   salmon_ch = Salmon.out.sf.collect()
 
-  // ExprClusters fenera la matriz de expresion
+  // ExprClusters genera la matriz de expresion
   ExprClusters(params.runSampleSheet, salmon_ch,
                file("${params.referenceDir}/geneId_transcriptId_geneName.tsv"),
                params.tpmPanel)
 
-  // a partir de Fastp.out.reads, Rascall busca fusiones.
+  // RaScALL identica eventos de ALL
   Rascall(Fastp.out.reads)
 
-  // STAR se utiliza en su modo de alineamiento.
+  // Alineamiento
   STAR_aligner(params.referenceDir, params.threadsSTAR, Fastp.out.reads)
 
-  // FreeBayes llama variantes a partir del BAM de STAR.
+  // LLamado de variantes
   FreeBayes(params.referenceDir, STAR_aligner.out.BAM)
 
-  // SnpEff anota las variantes con informacion funcional.
+  // Anotacion de variantes 
   SnpEff(FreeBayes.out.vcf)
 
-  // RNApeg se utiliza para busqueda de uniones y fusiones, utiliza los ".bam" resultado de STAR_aligner.
+  // Prerequisito para Cicero
   RNApeg(params.referenceDir,STAR_aligner.out.BAM)
   
-  // Se genera un canal para cicero, este tiene la union de los ".bam" de STAR y las uniones de RNApeg.
+  // RNApeg + STAR 
   cicero_ch = STAR_aligner.out.BAM
     .join(RNApeg.out.junctions)
   
-  // Cicero busca fusiones a partir del canal previamente creado y genera un reporte
+  // Llamado de fusiones
   Cicero(params.referenceDir,cicero_ch)
   
-  // Arriba busca fusiones utilizando los ".bam" resultado de STAR_aligner, genera un reporte con las fusiones.
+  // Llamado de fusiones
   Arriba(params.referenceDir,STAR_aligner.out.BAM)
 
-  // FusionCatcher busca fusiones y genera un reporte.
+  // Llamado de fusiones
   FusionCatcher(params.referenceDir, Fastp.out.reads)
 
-  /* Genera un canal con los resultados de los reportes de fusiones de FusionCatcher, 
-   * Arriba y Cicero. No avanza hasta que se obtienen todos los reportes.
-   */
+  // Cicero + Arriba + FusionCatcher
   fusions_ch = Cicero.out.fusions
                      .concat(Arriba.out.fusions, FusionCatcher.out.fusions)
                      .collect()
