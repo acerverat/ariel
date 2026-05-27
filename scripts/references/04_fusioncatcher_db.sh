@@ -2,7 +2,7 @@
 set -e
 
 # Base de datos de FusionCatcher
-# Se descarga usando el contenedor ariel-env y se monta en fusioncatcher_db/.
+# Se descarga usando el contenedor acerverat/ariel-env y se monta en fusioncatcher_db/.
 # En tiempo de ejecucion del pipeline, este directorio se monta en
 # /opt/fusioncatcher/data/current dentro del contenedor.
 
@@ -20,7 +20,7 @@ mkdir -p "$outdir/fusioncatcher_db"
 
 docker run --rm \
     -v "$outdir/fusioncatcher_db":/opt/fusioncatcher/data/human_v102 \
-    ariel-env \
+    acerverat/ariel-env:latest \
     bash -c "/opt/fusioncatcher/data/download-human-db.sh"
 
 echo "[fusioncatcher_db] Listo."

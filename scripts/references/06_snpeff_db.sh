@@ -23,7 +23,7 @@ mkdir -p "$snpeffdb"
 docker run --rm \
     -u "$(id -u):$(id -g)" \
     -v "$snpeffdb":/snpeff_data \
-    ariel-env \
+    acerverat/ariel-env:latest \
     java -jar /opt/snpEff/snpEff.jar download \
         -dataDir /snpeff_data \
         -v "$genome"

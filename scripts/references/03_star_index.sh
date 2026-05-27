@@ -32,7 +32,7 @@ mkdir -p "$outdir/STAR_2.7.10b_index"
 docker run -u $(id -u):$(id -g) --rm \
     -v "$outdir":"$outdir" \
     -w "$outdir" \
-    ariel-env \
+    acerverat/ariel-env:latest \
     STAR \
     --runMode genomeGenerate \
     --genomeDir STAR_2.7.10b_index \
