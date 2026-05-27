@@ -7,6 +7,7 @@
  * -FusionCatcher
  * -Rascall
  * Cuantifica con Salmon.
+ *
  */
 nextflow.enable.dsl=2
 
