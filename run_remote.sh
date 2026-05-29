@@ -55,11 +55,11 @@ EOF
 # ── Run pipeline ───────────────────────────────────────────────────────────────
 nextflow run "$PIPELINE" \
     -revision    "$REVISION" \
+    -latest \
     -name        "${RUN_NAME}_${TIMESTAMP}" \
     -w           "$WORK_DIR" \
     -params-file "${RUN_DIR}/params.yaml" \
     -with-report "${RUN_DIR}/logs/report.html" \
-    -with-trace  "${RUN_DIR}/logs/trace.txt" \
     -resume
 
 echo "Done. Results in ${RUN_DIR}/resultados/, logs in ${RUN_DIR}/logs/"
