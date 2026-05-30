@@ -44,59 +44,6 @@ process FusionSummary {
   """
 }
 
-process ExprClusters {
-  /*
-   *                        ---- ExprClusters ----
-   * 
-   * ExprClusters agrupa muestras en clusters de acuerdo con su expresion y genera graficos
-   * para su visualizacion. Utiliza el contenedor de Docker 'ariel-env'.
-   *
-   *  Input:
-   *	- runSampleSheet (path): Directorio con las rutas de las muestras.
-   *	- SalmonCollect (val): Lista con las rutas de los archivos de cuantificacion de Salmon.
-   *	- tablaGenesReferencia (path): Tabla con el gene id y ensembl id para poder unir la tabla generada de Salmon collect y tablaTPM.
-   *    - tablaTPM (path): Tabla de TPMs de muestras de un panel de genes.   
-   *
-   *  Output:
-   *  	- log2tpm_CRLF2_3_clusters.tsv (path): matriz transformada a log(TPM + 1)
-   *	- log2tpm_{gen}_{k}_clusters.tsv (path): tabla con: Sample, expresion y cluster
-   *	- boxplot_{gen}.png (path): boxplot con expresion por cluster.
-   *	- boxplot_nombres_{gen}: boxplot con nombre de las muestras seleccionadas. 
-   *  
-   */
-  cache 'lenient'
-  publishDir params.resultsDir+"/ExprClusters", mode: 'copy'
-  publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*png"
-  publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*cluster*"
-  container 'acerverat/ariel-env:latest'
-
-  input:
-    path runSampleSheet
-    val SalmonCollect
-    path tablaGenesReferencia
-    path tablaTPM	
-
-  output:
-    path("log2tpm_CRLF2_3_clusters.tsv"), emit: clusters
-    path("*tpm.tsv")
-    path("*png")
-
-  script:
-  """
-    export TMPDIR=\$PWD
-
-    # filtra caracteres para que preExprCluster.R pueda leer las rutas
-    salmoncsv=\$(echo ${SalmonCollect} | tr -d ' ' | tr -d '[' | tr -d ']')
-
-    # ejecuta preExprCluster para obtener la tabla de tpms
-    preExprCluster.R \${salmoncsv} ${tablaGenesReferencia} ${tablaTPM}    
-
-    # ejecuta kmeans con los genes CRLF2 y DUX4
-    kmeans.R ${runSampleSheet} tpm.tsv  CRLF2 3
-    kmeans.R ${runSampleSheet} tpm.tsv  DUX4 3
-  """
-}
-
 process Rascall {
  /*
   *                        ---- Rascall ----
@@ -790,6 +737,46 @@ process SnpEff {
     java -jar /opt/snpEff/SnpSift.jar annotate \
       /snpeff_data/clinvar.vcf.gz \
       ${sample}_snpeff.vcf > ${sample}_annotated.vcf
+  """
+}
+
+process ParseVCF {
+  /*
+   *                        ---- ParseVCF ----
+   *
+   * ParseVCF parsea el VCF anotado por SnpEff+SnpSift y genera un reporte TSV
+   * con variantes de transcriptos MANE Select que tienen clasificacion ClinVar
+   * reconocida (Pathogenic, Likely_pathogenic, Uncertain_significance, etc.).
+   * El archivo MANE Select debe descargarse previamente con 07_clinvar.sh.
+   *
+   * Input:
+   *   - mane_select (path): Tabla MANE Select (MANE_select.tsv) del directorio
+   *       de referencias (snpeff_db/).
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - vcf (path): VCF anotado por SnpEff+SnpSift ({sample}_annotated.vcf).
+   *
+   * Output:
+   *   - tuple (emit: variants):
+   *       - sample (val): Nombre de la muestra.
+   *       - {sample}_variantes.tsv (path): Reporte con columnas:
+   *           muestra, gen, mutacion, proteina, VAF_pct, clasificacion.
+   */
+  cache 'lenient'
+  container 'acerverat/ariel-env:latest'
+  publishDir params.resultsDir + "/variants", mode: 'copy'
+
+  input:
+    path mane_select
+    tuple val(sample), path(vcf)
+
+  output:
+    tuple val(sample), path("${sample}_variantes.tsv"), emit: variants
+
+  script:
+  """
+    export TMPDIR=\$PWD
+    parse_vcf_freebayes.R ${vcf} ${mane_select} ${sample}_variantes.tsv
   """
 }
 

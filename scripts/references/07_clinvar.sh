@@ -23,3 +23,16 @@ wget -c "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.tbi"
      -O "$outdir/clinvar.vcf.gz.tbi"
 
 echo "[clinvar] Listo."
+
+mane_sentinel="$outdir/MANE_select.tsv"
+if [[ -f "$mane_sentinel" ]]; then
+    echo "[mane] MANE Select ya presente, omitiendo descarga."
+else
+    echo "[mane] Descargando MANE Select (GRCh38)..."
+    # Actualizar la URL si hay una nueva version en:
+    # https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/current/
+    wget -c "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/current/MANE.GRCh38.v1.5.summary.txt.gz" \
+         -O "$outdir/MANE_select.tsv.gz"
+    gunzip "$outdir/MANE_select.tsv.gz"
+    echo "[mane] Listo."
+fi

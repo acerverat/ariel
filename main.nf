@@ -23,6 +23,7 @@ include {
 	        Rascall;
           FreeBayes;
           SnpEff;
+          ParseVCF;
           FusionSummary;
           FastQC as FastQC_before;
           FastQC as FastQC_after;
@@ -68,6 +69,9 @@ workflow {
 
   // SnpEff anota las variantes con informacion funcional.
   SnpEff(FreeBayes.out.vcf)
+
+  // ParseVCF genera el reporte de variantes MANE Select con clasificacion ClinVar.
+  ParseVCF(file("${params.referenceDir}/snpeff_db/MANE_select.tsv"), SnpEff.out.vcf)
 
   // RNApeg se utiliza para busqueda de uniones y fusiones, utiliza los ".bam" resultado de STAR_aligner.
   RNApeg(params.referenceDir,STAR_aligner.out.BAM)
