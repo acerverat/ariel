@@ -27,7 +27,7 @@ process FusionSummary {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.resultsDir+"/reports", mode: 'copy'
+  publishDir params.resultsDir+"/reportes", mode: 'copy'
 
   input:
     path SampleSheet
