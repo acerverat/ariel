@@ -32,7 +32,7 @@ process FusionSummary {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.resultsDir+"/reports", mode: 'copy'
+  publishDir params.resultsDir+"/reportes", mode: 'copy'
 
   input:
     path SampleSheet
@@ -77,8 +77,8 @@ process ExprClusters {
    */
   cache 'lenient'
   publishDir params.resultsDir+"/ExprClusters", mode: 'copy'
-  publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*png"
-  publishDir params.resultsDir+"/reports", mode: 'copy', pattern: "*cluster*"
+  publishDir params.resultsDir+"/reportes", mode: 'copy', pattern: "*png"
+  publishDir params.resultsDir+"/reportes", mode: 'copy', pattern: "*cluster*"
   container 'acerverat/ariel-env:latest'
 
   input:
