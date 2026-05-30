@@ -764,7 +764,7 @@ process ParseVCF {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.resultsDir + "/variants", mode: 'copy'
+  publishDir params.reportsDir + "/reportes", mode: 'copy'
 
   input:
     path mane_select
