@@ -45,7 +45,6 @@ tpmPanel:       "$TPM_PANEL"
 
 # Rutas de salida
 resultsDir: "${RUN_DIR}/resultados"
-reportsDir: "${RUN_DIR}/reportesQC"
 
 # Hilos
 threadsSTAR:    $THREADS_STAR

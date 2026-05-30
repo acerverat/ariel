@@ -47,7 +47,7 @@ workflow {
   FastQC_before(fqs_ch, "beforeTrimm")
 
   // MultiQC para lecturas sin filtrar
-  MultiQC_before(FastQC_before.out.qc.collect(), params.reportsDir+"/beforeTrimm")
+  MultiQC_before(FastQC_before.out.qc.collect(), params.resultsDir+"/qc/beforeTrimm")
 
   // Eliminacion de adaptadores y filtrado de calidad
   Fastp(fqs_ch)
@@ -109,6 +109,6 @@ workflow {
                  .mix(STAR_aligner.out.logs)
                  .collect()
 
-  MultiQC_after(reports_ch, params.reportsDir+"/afterTrimm")
+  MultiQC_after(reports_ch, params.resultsDir+"/qc/afterTrimm")
 
 }
