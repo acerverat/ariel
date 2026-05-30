@@ -804,6 +804,46 @@ process SnpEff {
   """
 }
 
+process ParseVCF {
+  /*
+   *                        ---- ParseVCF ----
+   *
+   * ParseVCF parsea el VCF anotado por SnpEff+SnpSift y genera un reporte TSV
+   * con variantes de transcriptos MANE Select que tienen clasificacion ClinVar
+   * reconocida (Pathogenic, Likely_pathogenic, Uncertain_significance, etc.).
+   * El archivo MANE Select debe descargarse previamente con 07_clinvar.sh.
+   *
+   * Input:
+   *   - mane_select (path): Tabla MANE Select (MANE_select.tsv) del directorio
+   *       de referencias (snpeff_db/).
+   *   - tuple:
+   *       - sample (val): Nombre de la muestra.
+   *       - vcf (path): VCF anotado por SnpEff+SnpSift ({sample}_annotated.vcf).
+   *
+   * Output:
+   *   - tuple (emit: variants):
+   *       - sample (val): Nombre de la muestra.
+   *       - {sample}_variantes.tsv (path): Reporte con columnas:
+   *           muestra, gen, mutacion, proteina, VAF_pct, clasificacion.
+   */
+  cache 'lenient'
+  container 'acerverat/ariel-env:latest'
+  publishDir params.resultsDir + "/variants", mode: 'copy'
+
+  input:
+    path mane_select
+    tuple val(sample), path(vcf)
+
+  output:
+    tuple val(sample), path("${sample}_variantes.tsv"), emit: variants
+
+  script:
+  """
+    export TMPDIR=\$PWD
+    parse_vcf_freebayes.R ${vcf} ${mane_select} ${sample}_variantes.tsv
+  """
+}
+
 process MultiQC {
   /*
    *                        ---- MultiQC ----
