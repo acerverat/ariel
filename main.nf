@@ -25,6 +25,7 @@ include {
 	        Rascall;
           FreeBayes;
           SnpEff;
+          ParseVCF;
           FusionSummary;
           FastQC as FastQC_before;
           FastQC as FastQC_after;
@@ -78,6 +79,9 @@ workflow {
 
   // Anotacion de variantes 
   SnpEff(FreeBayes.out.vcf)
+
+  // ParseVCF genera el reporte de variantes MANE Select con clasificacion ClinVar.
+  ParseVCF(file("${params.referenceDir}/snpeff_db/MANE_select.tsv"), SnpEff.out.vcf)
 
   // Prerequisito para Cicero
   RNApeg(params.referenceDir,STAR_aligner.out.BAM)
