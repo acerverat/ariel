@@ -651,7 +651,7 @@ process FastQC {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.reportsDir, mode: 'copy'
+  publishDir params.resultsDir + "/qc", mode: 'copy'
 
   input:
     tuple val(sample), file(R1), file(R2)
@@ -689,8 +689,8 @@ process Fastp {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.resultsDir+"/trimmed", mode: 'copy', pattern: "*.fq.gz"
-  publishDir params.reportsDir+"/afterTrimm", mode: 'copy', pattern: "*.{html,json}"
+  publishDir params.resultsDir + "/qc/trimmed", mode: 'copy', pattern: "*.fq.gz"
+  publishDir params.resultsDir + "/qc/afterTrimm", mode: 'copy', pattern: "*.{html,json}"
 
   input:
     tuple val(sample), file(R1), file(R2)
@@ -828,7 +828,7 @@ process ParseVCF {
    */
   cache 'lenient'
   container 'acerverat/ariel-env:latest'
-  publishDir params.reportsDir + "/reportes", mode: 'copy'
+  publishDir params.resultsDir + "/reportes", mode: 'copy'
 
   input:
     path mane_select

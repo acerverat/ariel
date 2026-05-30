@@ -9,7 +9,6 @@ tpmPanel:       "/PATH/TO/tpmPanel.tsv"
 
 # Rutas de salida
 resultsDir: "/PATH/TO/resultados"
-reportsDir: "/PATH/TO/reportes"
 
 # Hilos
 threadsSTAR:    4
