@@ -181,7 +181,7 @@ FUNGI_CFG
         -v \${fcdb}:/opt/fusioncatcher/data \
         acerverat/ariel-env:latest \
         bash -c "set -e
-        fungi-fusion-analyzer -c \${config} -o \${outdir}/fungi_output --input-list \${outdir}/input-list.txt annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
+        fungi-fusion-analyzer -c \${config} -o \${outdir}/fungi_output --input-list \${outdir}/input-list.txt --threads ${params.threadsFungi} annotate --filter-ensembl 'invalid_gene,same_gene,homologs' --filter-db 'banned,paralog' --filter-min-count 0
         fungi-fusion-consensus -o \${outdir}/fungi_output/consensus --fungi_annotated \${outdir}/fungi_output/annotated"
     """
 }
