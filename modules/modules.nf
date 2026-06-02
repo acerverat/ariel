@@ -18,7 +18,7 @@ process FusionSummary {
    * Input:
    *   - SampleSheet (path): TSV con las muestras a analizar.
    *   - bp_consensus (path): Reporte de Fungi con los breakpoints.
-   *   - rascall (val): Archivos de resultados de RaScALL (dependencia de ejecucion).
+   *   - rascall_files (path): CSVs de resultados de RaScALL, staged en el workdir.
    *   - cluster (path): Tabla log2tpm_CRLF2_3_clusters.tsv de ExprClusters.
    *
    * Output:
@@ -37,7 +37,7 @@ process FusionSummary {
   input:
     path SampleSheet
     path bp_consensus
-    val rascall
+    path rascall_files
     path cluster
 
   output:
@@ -48,7 +48,7 @@ process FusionSummary {
     export TMPDIR=\$PWD
 
     # Paso 1: genera hallazgos_principales.csv, fusiones_otras.csv y rascall_data.csv
-    generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}/rascall
+    generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} \$PWD
 
     # Paso 2: genera hallazgos_otros.csv usando los intermedios del paso anterior
     generaReporteHallazgosOtros.R fusiones_otras.csv rascall_data.csv ${params.resultsDir}/fusions/cicero ${SampleSheet} ${cluster}
