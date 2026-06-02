@@ -32,10 +32,22 @@ Rascall_file_names <- list.files(Rascall_Folder,
                                  recursive = TRUE,
                                  full.names = FALSE)
 
-Rascall.data <- vroom(
-  file.path(Rascall_Folder, Rascall_file_names),
-  col_select = c("File", "Target_Type", "Alteration", "Type")
-)
+rascall_cols <- c("File", "Target_Type", "Alteration", "Type")
+
+if (length(Rascall_file_names) == 0) {
+  message("Warning: no _final_variants.csv files found in ", Rascall_Folder)
+  Rascall.data <- setNames(as.data.frame(matrix(nrow = 0, ncol = length(rascall_cols))), rascall_cols)
+} else {
+  Rascall.data <- vroom(
+    file.path(Rascall_Folder, Rascall_file_names),
+    col_select = any_of(rascall_cols)
+  )
+  missing_cols <- setdiff(rascall_cols, names(Rascall.data))
+  if (length(missing_cols) > 0) {
+    message("Warning: columnas faltantes en resultados de RaScALL: ", paste(missing_cols, collapse = ", "))
+    for (col in missing_cols) Rascall.data[[col]] <- NA_character_
+  }
+}
 
 # Create fusion table from RaScALL
 Fusion.Rascall <- Rascall.data |>
