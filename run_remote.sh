@@ -14,6 +14,7 @@ BASE_DIR="<PATH_TO_RUNS_BASE>"            # parent directory where run folders w
 WORK_DIR=""                               # leave empty to default to <RUN_DIR>/work
 THREADS_STAR=4
 THREADS_RASCALL=4
+THREADS_FUNGI=15
 
 # ── Validation ─────────────────────────────────────────────────────────────────
 for var in REVISION REFERENCE_DIR TPM_PANEL SAMPLE_SHEET BASE_DIR; do
@@ -49,6 +50,7 @@ resultsDir: "${RUN_DIR}/resultados"
 # Hilos
 threadsSTAR:    $THREADS_STAR
 threadsRascall: $THREADS_RASCALL
+threadsFungi:   $THREADS_FUNGI
 EOF
 
 # ── Run pipeline ───────────────────────────────────────────────────────────────

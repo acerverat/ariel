@@ -13,3 +13,4 @@ resultsDir: "/PATH/TO/resultados"
 # Hilos
 threadsSTAR:    4
 threadsRascall: 4
+threadsFungi:   15

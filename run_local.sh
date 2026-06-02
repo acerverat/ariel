@@ -14,6 +14,7 @@ BASE_DIR="$HOME/Prueba_Ariel/RESULTADOS"             # parent directory where ru
 WORK_DIR=""                                # leave empty to default to <RUN_DIR>/work
 THREADS_STAR=1
 THREADS_RASCALL=1
+THREADS_FUNGI=15
 
 # ── Validation ─────────────────────────────────────────────────────────────────
 for var in ARIEL_DIR REFERENCE_DIR TPM_PANEL SAMPLE_SHEET BASE_DIR; do
@@ -48,6 +49,7 @@ resultsDir: "${RUN_DIR}/resultados"
 # Hilos
 threadsSTAR:    $THREADS_STAR
 threadsRascall: $THREADS_RASCALL
+threadsFungi:   $THREADS_FUNGI
 EOF
 
 # ── Run pipeline ───────────────────────────────────────────────────────────────
