@@ -18,7 +18,7 @@ process FusionSummary {
    * Input:
    *   - SampleSheet (path): TSV con las muestras a analizar.
    *   - bp_consensus (path): Reporte de Fungi con los breakpoints.
-   *   - rascall (val): Archivos de resultados de RaScALL (dependencia de ejecucion).
+   *   - rascall_files (path): CSVs de resultados de RaScALL, staged en el workdir.
    *
    * Output:
    *   - hallazgos_principales.csv:
@@ -32,7 +32,7 @@ process FusionSummary {
   input:
     path SampleSheet
     path bp_consensus
-    val rascall
+    path rascall_files
 
   output:
     file ('hallazgos_principales.csv')
@@ -40,7 +40,7 @@ process FusionSummary {
   script:
   """
     export TMPDIR=\$PWD
-    generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} ${params.resultsDir}/rascall
+    generaReporteHallazgosPrincipales.R ${SampleSheet} ${bp_consensus} \$PWD
   """
 }
 

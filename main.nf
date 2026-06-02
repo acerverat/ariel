@@ -99,8 +99,11 @@ workflow {
   // Fungi genera el input-list.txt, analiza y genera un consenso de las fusiones.
   Fungi(fusions_ch)
    
+  // Colecta los CSVs de RaScALL como path para que Nextflow los monte en el contenedor.
+  rascall_ch = Rascall.out.results.map { sample, files -> files }.flatten().collect()
+
   // FusionSummary genera un reporte usando los reportes de Cicero, Arriba, FusionCatcher y Rascall.
-  FusionSummary(params.runSampleSheet, Fungi.out.bp, Rascall.out.results.collect())
+  FusionSummary(params.runSampleSheet, Fungi.out.bp, rascall_ch)
 
   // MultiQC final: FastQC (antes y despues) + Fastp + STAR
   reports_ch = FastQC_before.out.qc
