@@ -15,6 +15,9 @@ WORK_DIR=""                               # leave empty to default to <RUN_DIR>/
 THREADS_STAR=4
 THREADS_RASCALL=4
 THREADS_FUNGI=15
+FUNGI_FILTER_ENSEMBL="same_gene,homologs"
+FUNGI_FILTER_DB="banned,paralog"
+FUNGI_FILTER_MIN_COUNT=0
 
 # ── Validation ─────────────────────────────────────────────────────────────────
 for var in REVISION REFERENCE_DIR TPM_PANEL SAMPLE_SHEET BASE_DIR; do
@@ -51,6 +54,9 @@ resultsDir: "${RUN_DIR}/resultados"
 threadsSTAR:    $THREADS_STAR
 threadsRascall: $THREADS_RASCALL
 threadsFungi:   $THREADS_FUNGI
+fungiFilterEnsembl:  "$FUNGI_FILTER_ENSEMBL"
+fungiFilterDb:       "$FUNGI_FILTER_DB"
+fungiFilterMinCount: $FUNGI_FILTER_MIN_COUNT
 EOF
 
 # ── Run pipeline ───────────────────────────────────────────────────────────────

@@ -14,3 +14,8 @@ resultsDir: "/PATH/TO/resultados"
 threadsSTAR:    4
 threadsRascall: 4
 threadsFungi:   15
+
+# Filtros de fungi-fusion-analyzer
+fungiFilterEnsembl:  "same_gene,homologs"
+fungiFilterDb:       "banned,paralog"
+fungiFilterMinCount: 0
