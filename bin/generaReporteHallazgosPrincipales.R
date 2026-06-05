@@ -94,13 +94,14 @@ rascall_dedup <- Fusion.Rascall |>
 emerging_patterns <- c(
   "DUX4"        = "DUX4",
   "MEF2D"       = "MEF2D",
-  "ZNF384"      = "ZNF384",
+  "ZNF384r"     = "ZNF384",
   "ZNF384-like" = "SMARCA2--ZNF362|ZNF362--SMARCA2|TAF15--ZNF362|ZNF362--TAF15",
   "BCL/MYC"     = "BCL6|BCL2|MYC",
-  "NUTM1"       = "NUTM1",
-  "IKZF1"       = "IKZF1",
+  "NUTM1r"      = "NUTM1",
+  "IKZF1r"      = "IKZF1",
   "CRLF2r"      = "DDX3X|USP9X",
   "PAX5r"       = "PAX5",
+  "CREBBPr"     = "CREBBP",
   "IGH--CEBPE"  = "IGH--CEBPE|CEBPE--IGH"
 )
 
@@ -136,14 +137,14 @@ integrated <- full_join(
 hallazgos_annotated <- integrated |>
   mutate(
     Subtipo = case_when(
-      grepl("BCR--ABL1|ABL1--BCR", FusionName)                      ~ "Ph",
-      grepl("ETV6--RUNX1|RUNX1--ETV6", FusionName)                  ~ "ETV6--RUNX1",
-      grepl("TCF3--PBX1|PBX1--TCF3", FusionName)                    ~ "TCF3--PBX1",
-      grepl("TCF3--HLF|HLF--TCF3|TCF4--HLF|HLF--TCF4", FusionName) ~ "TCF3--HLF",
-      grepl("IGH--IL3|IL3--IGH", FusionName)                        ~ "IGH--IL3",
+      grepl("BCR--ABL1|ABL1--BCR", FusionName)                      ~ "BCR::ABL1",
+      grepl("ETV6--RUNX1|RUNX1--ETV6", FusionName)                  ~ "ETV6::RUNX1",
+      grepl("TCF3--PBX1|PBX1--TCF3", FusionName)                    ~ "TCF3::PBX1",
+      grepl("TCF3--HLF|HLF--TCF3|TCF4--HLF|HLF--TCF4", FusionName)  ~ "TCF3::HLF",
+      grepl("IGH--IL3|IL3--IGH", FusionName)                        ~ "IGH::IL3",
       grepl("KMT2A", FusionName)                                    ~ "KMT2Ar",
-      grepl("CRLF2|JAK2|ABL|EPOR|PDGFRB", FusionName)              ~ "Ph-like",
-      grepl("ETV6", FusionName)                                     ~ "ETV6-like",
+      grepl("CRLF2|JAK2|ABL|EPOR|PDGFRB|PDGFRA", FusionName)         ~ "Ph-like",
+      grepl("ETV6", FusionName)                                     ~ "ETV6::RUNX1-Like",
       .default = "-"
     ),
     Subtipo_Emergente = map_chr(FusionName, \(fn) {
@@ -154,8 +155,13 @@ hallazgos_annotated <- integrated |>
     SR_Cicero        = str_extract(additional_info, "(?<=cicero:SR=)\\d+") |> replace_na("-"),
     SR_Fusioncatcher = str_extract(additional_info, "(?<=fusioncatcher:SR=)\\d+") |> replace_na("-"),
     es_principal = grepl("RaScALL", coalesce(Methods_list, "")) |
-                   #Subtipo != "-" |
-                   (coalesce(Methods_count, 0L) >= 3 & coalesce(Supporting_reads, 0L) >= 10)
+                   coalesce(Methods_count, 0L) >= 3 |
+                   (coalesce(Methods_count, 0L) >= 2 & (Subtipo != "-" | Subtipo_Emergente != "-")) |
+                   (coalesce(Supporting_reads, 0L) >= 10 &
+                    (grepl("cicero:[^|]*,HQ,", coalesce(additional_info, "")) |
+                     grepl("arriba:[^|]*confidence=high", coalesce(additional_info, "")))) |
+                   grepl("fusioncatcher:SR=\\d{2,}", coalesce(additional_info, "")) |
+                   grepl("cicero:[^|]*,medal=4,", coalesce(additional_info, ""))
   )
 
 # Helper to apply final column selection and Spanish names
@@ -173,7 +179,16 @@ final_cols <- function(df) {
   )
 }
 
-hallazgos_principales <- hallazgos_annotated |> filter(es_principal) |> final_cols()
+hallazgos_principales <- hallazgos_annotated |> filter(es_principal) |> final_cols() |>
+  group_by(Muestra) |>
+  summarise(
+    across(c(Subtipo, Subtipo_Emergente), ~ {
+      vals <- unique(.x[.x != "-"])
+      if (length(vals) == 0) "-" else paste(vals, collapse = "; ")
+    }),
+    across(!c(Subtipo, Subtipo_Emergente), ~ paste(.x, collapse = "; ")),
+    .groups = "drop"
+  )
 
 # Add samples from the sample sheet that have no fusions at all
 missing_samples <- setdiff(samples$Sample, hallazgos_principales$Muestra)
