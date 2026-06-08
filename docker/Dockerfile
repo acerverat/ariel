@@ -149,20 +149,6 @@ RUN wget http://sf.net/projects/fusioncatcher/files/bootstrap.py -O bootstrap.py
 RUN echo 'FUSIONCATCHER_HOME=/opt/fusioncatcher \nFUSIONCATCHER_DB=/opt/fusioncatcher/data/current' > myConfig.txt
 
 
-# Instalar Fungi
-# Para forzar actualizacion: docker build --build-arg FUNGI_DATE=$(date +%Y%m%d) ...
-ARG FUNGI_DATE=20260101
-RUN git clone https://alejandra_cervera@bitbucket.org/alejandra_cervera/fungi.git
-RUN cd fungi && git fetch && git checkout v2
-RUN cd fungi/resources && ./download.sh
-RUN pip3 install --break-system-packages pandas
-RUN cd /usr/local/lib/fungi && git pull
-RUN ln -s /usr/local/lib/fungi/bin/* /usr/local/bin/
-RUN cd /opt/fusioncatcher/bin/
-RUN wget https://raw.githubusercontent.com/ndaniel/fusioncatcher/refs/heads/master/bin/label_fusion_genes_znf.py
-RUN cp label_fusion_genes_znf.py /opt/fusioncatcher/bin/
-RUN chmod +x /opt/fusioncatcher/bin/label_fusion_genes_znf.py
-
 # FreeBayes - llamado de variantes
 RUN wget -q https://github.com/freebayes/freebayes/releases/download/v1.3.10/freebayes-1.3.10-linux-amd64-static.gz && \
     gunzip freebayes-1.3.10-linux-amd64-static.gz && \
@@ -175,6 +161,19 @@ RUN apt-get install -y unzip && \
     wget -q https://snpeff-public.s3.amazonaws.com/versions/snpEff_latest_core.zip && \
     unzip snpEff_latest_core.zip && \
     rm snpEff_latest_core.zip
+
+# Instalar Fungi (al final para que cambios en Fungi no invaliden capas anteriores)
+# Para forzar actualizacion: docker build --build-arg FUNGI_DATE=$(date +%Y%m%d) ...
+ARG FUNGI_DATE=20260101
+RUN git clone https://alejandra_cervera@bitbucket.org/alejandra_cervera/fungi.git
+RUN cd fungi && git fetch && git checkout v2
+RUN cd fungi/resources && ./download.sh
+RUN pip3 install --break-system-packages pandas
+RUN cd /usr/local/lib/fungi && git pull
+RUN ln -s /usr/local/lib/fungi/bin/* /usr/local/bin/
+RUN cd /opt/fusioncatcher/bin/ && \
+    wget https://raw.githubusercontent.com/ndaniel/fusioncatcher/refs/heads/master/bin/label_fusion_genes_znf.py && \
+    chmod +x label_fusion_genes_znf.py
 
 ENV TZ="America/Mexico_City"
 
