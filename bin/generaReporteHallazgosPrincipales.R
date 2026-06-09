@@ -64,6 +64,7 @@ Fusion.Rascall <- Rascall.data |>
 # Collapse reversed fusion pairs in bp, 
 # keeping orientation with highest Supporting_reads
 bp_collapsed <- bp |>
+  filter(!grepl("^NA--|--NA$", FusionName)) |>
   mutate(canonical = make_canonical(FusionName)) |>
   group_by(canonical, Sample) |>
   mutate(reversed_also_present = n() > 1) |>
@@ -99,7 +100,6 @@ emerging_patterns <- c(
   "BCL/MYC"     = "BCL6|BCL2|MYC",
   "NUTM1r"      = "NUTM1",
   "IKZF1r"      = "IKZF1",
-  "CRLF2r"      = "DDX3X|USP9X",
   "PAX5r"       = "PAX5",
   "CREBBPr"     = "CREBBP",
   "IGH--CEBPE"  = "IGH--CEBPE|CEBPE--IGH"
@@ -143,7 +143,7 @@ hallazgos_annotated <- integrated |>
       grepl("TCF3--HLF|HLF--TCF3|TCF4--HLF|HLF--TCF4", FusionName)  ~ "TCF3::HLF",
       grepl("IGH--IL3|IL3--IGH", FusionName)                        ~ "IGH::IL3",
       grepl("KMT2A", FusionName)                                    ~ "KMT2Ar",
-      grepl("CRLF2|JAK2|ABL|EPOR|PDGFRB|PDGFRA", FusionName)         ~ "Ph-like",
+      grepl("CRLF2|JAK2|ABL|EPOR|PDGFRB|PDGFRA|USP9X--DDX3X|DDX3X--USP9X", FusionName) ~ "Ph-like",
       grepl("ETV6", FusionName)                                     ~ "ETV6::RUNX1-Like",
       .default = "-"
     ),
@@ -157,6 +157,7 @@ hallazgos_annotated <- integrated |>
     es_principal = grepl("RaScALL", coalesce(Methods_list, "")) |
                    coalesce(Methods_count, 0L) >= 3 |
                    (coalesce(Methods_count, 0L) >= 2 & (Subtipo != "-" | Subtipo_Emergente != "-")) |
+                   (coalesce(Supporting_reads, 0L) >= 10 & (Subtipo != "-" | Subtipo_Emergente != "-")) |
                    (coalesce(Supporting_reads, 0L) >= 10 &
                     (grepl("cicero:[^|]*,HQ,", coalesce(additional_info, "")) |
                      grepl("arriba:[^|]*confidence=high", coalesce(additional_info, "")))) |
