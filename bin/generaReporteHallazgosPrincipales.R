@@ -64,7 +64,8 @@ Fusion.Rascall <- Rascall.data |>
 # Collapse reversed fusion pairs in bp, 
 # keeping orientation with highest Supporting_reads
 bp_collapsed <- bp |>
-  filter(!grepl("^NA--|--NA$", FusionName)) |>
+  filter(!grepl("^NA--|--NA$", FusionName),
+         !grepl("\\(|,", FusionName)) |>
   mutate(canonical = make_canonical(FusionName)) |>
   group_by(canonical, Sample) |>
   mutate(reversed_also_present = n() > 1) |>
@@ -93,7 +94,7 @@ rascall_dedup <- Fusion.Rascall |>
   select(-FusionName_bp, -FusionName_fallback)
 
 emerging_patterns <- c(
-  "DUX4"        = "DUX4",
+  "DUX4r"       = "IGH[^-]*--DUX4|DUX4--IGH[^-]*|ERG--DUX4|DUX4--ERG",
   "MEF2D"       = "MEF2D",
   "ZNF384r"     = "ZNF384",
   "ZNF384-like" = "SMARCA2--ZNF362|ZNF362--SMARCA2|TAF15--ZNF362|ZNF362--TAF15",
@@ -102,7 +103,7 @@ emerging_patterns <- c(
   "IKZF1r"      = "IKZF1",
   "PAX5r"       = "PAX5",
   "CREBBPr"     = "CREBBP",
-  "IGH--CEBPE"  = "IGH--CEBPE|CEBPE--IGH"
+  "IGH--CEBPE"  = "IGH[^-]*--CEBPE|CEBPE--IGH[^-]*"
 )
 
 # Integrate bp_collapsed and rascall_dedup
@@ -141,7 +142,7 @@ hallazgos_annotated <- integrated |>
       grepl("ETV6--RUNX1|RUNX1--ETV6", FusionName)                  ~ "ETV6::RUNX1",
       grepl("TCF3--PBX1|PBX1--TCF3", FusionName)                    ~ "TCF3::PBX1",
       grepl("TCF3--HLF|HLF--TCF3|TCF4--HLF|HLF--TCF4", FusionName)  ~ "TCF3::HLF",
-      grepl("IGH--IL3|IL3--IGH", FusionName)                        ~ "IGH::IL3",
+      grepl("IGH[^-]*--IL3|IL3--IGH[^-]*", FusionName)              ~ "IGH::IL3",
       grepl("KMT2A", FusionName)                                    ~ "KMT2Ar",
       grepl("CRLF2|JAK2|ABL|EPOR|PDGFRB|PDGFRA|USP9X--DDX3X|DDX3X--USP9X", FusionName) ~ "Ph-like",
       grepl("ETV6", FusionName)                                     ~ "ETV6::RUNX1-Like",
