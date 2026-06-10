@@ -52,15 +52,6 @@ bash scripts/generaReferencias.sh /ruta/al/directorio/referencias
 bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
 ```
 
-| Script | Contenido |
-|--------|-----------|
-| `01_cicero.sh` | Referencias de Cicero y RNApeg |
-| `02_gencode.sh` | Anotaciones Gencode v42 (GTF y GFF3) |
-| `03_star_index.sh` | Índice de STAR (requiere 01 y 02) |
-| `04_fusioncatcher_db.sh` | Base de datos de FusionCatcher |
-| `05_salmon_index.sh` | Índice de Salmon (desde transcriptoma Gencode v42) y tabla `geneId_transcriptId_geneName.tsv` |
-| `06_snpeff_db.sh` | Base de datos de SnpEff (GRCh38.p14) |
-| `07_clinvar.sh` | VCF de ClinVar (GRCh38) y tabla MANE Select para anotación de variantes |
 
 Esto crea `GRCh38_no_alt/` con:
 

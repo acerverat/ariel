@@ -52,15 +52,6 @@ bash scripts/generaReferencias.sh /path/to/references
 bash scripts/references/03_star_index.sh /path/to/references
 ```
 
-| Script | Content |
-|--------|---------|
-| `01_cicero.sh` | Cicero and RNApeg references |
-| `02_gencode.sh` | Gencode v42 annotations (GTF and GFF3) |
-| `03_star_index.sh` | STAR index (requires 01 and 02) |
-| `04_fusioncatcher_db.sh` | FusionCatcher database |
-| `05_salmon_index.sh` | Salmon index (built from Gencode v42 transcriptome) and `geneId_transcriptId_geneName.tsv` table |
-| `06_snpeff_db.sh` | SnpEff database (GRCh38.p14) |
-| `07_clinvar.sh` | ClinVar VCF (GRCh38) and MANE Select table for variant annotation |
 
 This creates `GRCh38_no_alt/` with:
 
