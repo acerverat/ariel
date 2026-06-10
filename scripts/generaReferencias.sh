@@ -13,6 +13,8 @@ set -e
 #   03_star_index.sh      Indice de STAR (requiere 01 y 02)
 #   04_fusioncatcher_db.sh Base de datos de FusionCatcher
 #   05_salmon_index.sh    Indice de Salmon
+#   06_snpeff_db.sh       Base de datos de SnpEff
+#   07_clinvar.sh         VCF de ClinVar y tabla MANE Select
 
 if [[ -z "$1" ]]; then
     echo "No se introdujo una ruta."
@@ -35,6 +37,8 @@ bash "$SCRIPTS_DIR/02_gencode.sh"         "$rutaReferencias"
 bash "$SCRIPTS_DIR/03_star_index.sh"      "$rutaReferencias"
 bash "$SCRIPTS_DIR/04_fusioncatcher_db.sh" "$rutaReferencias"
 bash "$SCRIPTS_DIR/05_salmon_index.sh"    "$rutaReferencias"
+bash "$SCRIPTS_DIR/06_snpeff_db.sh"       "$rutaReferencias"
+bash "$SCRIPTS_DIR/07_clinvar.sh"         "$rutaReferencias"
 
 echo ""
 echo "=========================================="
