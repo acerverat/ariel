@@ -44,12 +44,9 @@ docker pull acerverat/rascall:1.0
 `generaReferencias.sh` is the master script that runs the subscripts in `scripts/references/` in order. Each subscript checks whether its references are already installed before downloading, so it is safe to rerun without reinstalling existing data. If a step fails, only that subscript needs to be rerun.
 
 ```bash
-# Install main references
+# Install all references
 bash scripts/generaReferencias.sh /path/to/references
 
-# Steps 06 and 07 must be run separately:
-bash scripts/references/06_snpeff_db.sh /path/to/references
-bash scripts/references/07_clinvar.sh   /path/to/references
 
 # Or run a single step, for example:
 bash scripts/references/03_star_index.sh /path/to/references

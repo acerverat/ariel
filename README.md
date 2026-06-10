@@ -44,12 +44,9 @@ docker pull acerverat/rascall:1.0
 `generaReferencias.sh` es el script maestro que ejecuta en orden los subscripts de `scripts/references/`. Cada subscript verifica si sus referencias ya están instaladas antes de descargar, por lo que es seguro reejecutar sin reinstalar lo que ya existe. Si un paso falla, se puede reejecutar solo ese subscript.
 
 ```bash
-# Instalar referencias principales
+# Instalar todas las referencias
 bash scripts/generaReferencias.sh /ruta/al/directorio/referencias
 
-# Los pasos 06 y 07 deben ejecutarse por separado:
-bash scripts/references/06_snpeff_db.sh /ruta/al/directorio/referencias
-bash scripts/references/07_clinvar.sh   /ruta/al/directorio/referencias
 
 # O ejecutar un paso individual, por ejemplo:
 bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
@@ -163,7 +160,7 @@ ARIEL/
 ├── modules/
 │   └── modules.nf                          # Módulos del pipeline
 ├── scripts/
-│   ├── generaReferencias.sh                # Script maestro de referencias (pasos 01–05)
+│   ├── generaReferencias.sh                # Script maestro de referencias (pasos 01–07)
 │   └── references/
 │       ├── 01_cicero.sh
 │       ├── 02_gencode.sh
