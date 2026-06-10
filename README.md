@@ -19,7 +19,8 @@ ARIEL integra múltiples herramientas para la detección y análisis de fusiones
 | **RaScALL** | Detección de fusiones, SNVs, fusiones IGH, deleciones focales y DUX4 (especializado en LLA) |
 | **Fungi** | Consenso de fusiones detectadas por los métodos anteriores |
 | **Salmon** | Cuantificación de expresión génica |
-| **ExprClusters** | Agrupamiento de muestras por expresión (CRLF2, DUX4) |
+| **FreeBayes** | Llamado de variantes (SNVs e indels) |
+| **SnpEff + SnpSift** | Anotación funcional de variantes y filtrado con ClinVar |
 | **FusionSummary** | Reporte final con resultados integrados |
 
 ## Requisitos
@@ -29,14 +30,13 @@ ARIEL integra múltiples herramientas para la detección y análisis de fusiones
 
 ## Instalación
 
-### 1. Construir las imágenes de Docker
+### 1. Obtener las imágenes de Docker
+
+Las imágenes están disponibles en Docker Hub y se descargan automáticamente al ejecutar el pipeline. También se pueden descargar manualmente:
 
 ```bash
-# Imagen principal: STAR, Salmon, Arriba, FusionCatcher, Fungi
-bash docker/build_ariel.sh
-
-# Imagen de RaScALL
-bash docker/build_rascall.sh
+docker pull acerverat/ariel-env:latest
+docker pull acerverat/rascall:1.0
 ```
 
 ### 2. Preparar las referencias
@@ -44,8 +44,12 @@ bash docker/build_rascall.sh
 `generaReferencias.sh` es el script maestro que ejecuta en orden los subscripts de `scripts/references/`. Cada subscript verifica si sus referencias ya están instaladas antes de descargar, por lo que es seguro reejecutar sin reinstalar lo que ya existe. Si un paso falla, se puede reejecutar solo ese subscript.
 
 ```bash
-# Instalar todas las referencias
+# Instalar referencias principales
 bash scripts/generaReferencias.sh /ruta/al/directorio/referencias
+
+# Los pasos 06 y 07 deben ejecutarse por separado:
+bash scripts/references/06_snpeff_db.sh /ruta/al/directorio/referencias
+bash scripts/references/07_clinvar.sh   /ruta/al/directorio/referencias
 
 # O ejecutar un paso individual, por ejemplo:
 bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
@@ -58,6 +62,8 @@ bash scripts/references/03_star_index.sh /ruta/al/directorio/referencias
 | `03_star_index.sh` | Índice de STAR (requiere 01 y 02) |
 | `04_fusioncatcher_db.sh` | Base de datos de FusionCatcher |
 | `05_salmon_index.sh` | Índice de Salmon (desde transcriptoma Gencode v42) y tabla `geneId_transcriptId_geneName.tsv` |
+| `06_snpeff_db.sh` | Base de datos de SnpEff (GRCh38.p14) |
+| `07_clinvar.sh` | VCF de ClinVar (GRCh38) y tabla MANE Select para anotación de variantes |
 
 Esto crea `GRCh38_no_alt/` con:
 
@@ -66,6 +72,7 @@ GRCh38_no_alt/
 ├── cicero_references/               # Referencias de Cicero y RNApeg
 ├── fusioncatcher_db/                # Base de datos de FusionCatcher
 ├── salmon_index/                    # Índice de Salmon
+├── snpeff_db/                       # Base de datos de SnpEff, ClinVar y MANE Select
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 ├── geneId_transcriptId_geneName.tsv # Tabla gene_id / transcript_id / gene_name
@@ -74,11 +81,7 @@ GRCh38_no_alt/
 
 ### 3. Configurar los parámetros
 
-```bash
-bash scripts/generaParams.sh
-```
-
-El script solicita de forma interactiva las rutas y genera `config/params.yaml`. También se puede editar el archivo directamente.
+Copia `run_local.sh` o `run_remote.sh` a tu directorio de trabajo, completa las rutas marcadas con `<...>` y ejecútalo. El script genera automáticamente el archivo de parámetros y lanza el pipeline.
 
 ### SampleSheet
 
@@ -93,14 +96,11 @@ CA002	/ruta/CA002_R1.fastq.gz	/ruta/CA002_R2.fastq.gz
 ## Uso
 
 ```bash
-bash run.sh
-```
+# Ejecución local (desarrollo y pruebas)
+bash run_local.sh
 
-Cualquier argumento adicional se pasa directamente a Nextflow:
-
-```bash
-bash run.sh -resume
-bash run.sh -resume -with-trace
+# Ejecución desde una versión publicada en GitHub
+bash run_remote.sh
 ```
 
 ## Parámetros
@@ -109,13 +109,13 @@ bash run.sh -resume -with-trace
 |-----------|-------------|---------|
 | `resultsDir` | Directorio de resultados | — |
 | `runSampleSheet` | Ruta del SampleSheet (TSV) | — |
-| `referenceDir` | Directorio de referencias | — |
-| `tpmPanel` | Tabla de TPMs de referencia (panel de genes) | — |
-| `workDir` | Directorio de trabajo de Nextflow | — |
-| `method_counts` | Métodos mínimos que deben detectar una fusión | `10` |
-| `supporting_reads` | Lecturas de soporte mínimas | `3` |
+| `referenceDir` | Directorio de referencias (`GRCh38_no_alt/`) | — |
 | `threadsSTAR` | Hilos para STAR | `4` |
 | `threadsRascall` | Hilos para RaScALL | `4` |
+| `threadsFungi` | Hilos para Fungi | `15` |
+| `fungiFilterEnsembl` | Filtros Ensembl de Fungi | `"same_gene,homologs"` |
+| `fungiFilterDb` | Filtros de base de datos de Fungi | `"banned,paralog"` |
+| `fungiFilterMinCount` | Conteo mínimo de lecturas para Fungi | `0` |
 
 ## Estructura de resultados
 
@@ -129,11 +129,16 @@ resultsDir/
 │   └── cicero/          # Fusiones detectadas por Cicero
 ├── fungi/               # Consenso de fusiones (Fungi)
 ├── rascall/             # Resultados de RaScALL
-├── quantification/      # Cuantificación de expresión (Salmon)
-├── ExprClusters/        # Resultados de clustering de expresión
-└── reports/
+├── variants/
+│   ├── freebayes/       # VCFs de FreeBayes
+│   └── snpeff/          # VCFs anotados por SnpEff+SnpSift
+├── qc/
+│   ├── beforeTrimm/     # MultiQC antes del filtrado
+│   ├── afterTrimm/      # FastQC + Fastp + MultiQC después del filtrado
+│   └── trimmed/         # Lecturas filtradas (Fastp)
+└── reportes/
     ├── hallazgos_principales.csv  # Fusiones principales, subtipos y breakpoints por muestra
-    └── hallazgos_otros.csv        # Fusiones secundarias, SNVs, deleciones focales, expresión CRLF2/DUX4
+    └── variantes_NM.tsv           # Variantes MANE Select con clasificación ClinVar
 ```
 
 ## Autores
@@ -147,29 +152,27 @@ resultsDir/
 ```
 ARIEL/
 ├── bin/
-│   ├── preExprCluster.R                    # Genera matriz TPM desde cuantificaciones de Salmon
-│   ├── kmeans.R                            # Clustering k-means por gen y generación de boxplots
 │   ├── generaReporteHallazgosPrincipales.R # Reporte de fusiones principales e integración con RaScALL
-│   └── generaReporteHallazgosOtros.R       # Reporte de fusiones secundarias, SNVs, deleciones y expresión
+│   ├── generaReporteHallazgosOtros.R       # Reporte de fusiones secundarias, SNVs y deleciones
+│   └── parse_vcf_freebayes.R               # Reporte de variantes MANE Select con clasificación ClinVar
 ├── config/
-│   ├── nextflow.config                     # Configuración de infraestructura (Docker, workDir)
-│   └── params.yaml                         # Parámetros del flujo de trabajo (rutas, hilos, umbrales)
+│   └── params.yaml                         # Referencia de parámetros disponibles
 ├── docker/
 │   ├── Dockerfile                          # Imagen principal (ariel-env)
-│   ├── Rascall_Dockerfile                  # Imagen de RaScALL (rascall:1.0)
-│   ├── build_ariel.sh                      # Construye ariel-env
-│   └── build_rascall.sh                    # Construye rascall:1.0
+│   └── build_ariel.sh                      # Construye ariel-env
 ├── modules/
 │   └── modules.nf                          # Módulos del pipeline
 ├── scripts/
-│   ├── generaParams.sh                     # Generador interactivo de config/params.yaml
-│   ├── generaReferencias.sh                # Script maestro de referencias
-│   └── references/                         # Subscripts por herramienta
+│   ├── generaReferencias.sh                # Script maestro de referencias (pasos 01–05)
+│   └── references/
 │       ├── 01_cicero.sh
 │       ├── 02_gencode.sh
 │       ├── 03_star_index.sh
 │       ├── 04_fusioncatcher_db.sh
-│       └── 05_salmon_index.sh
+│       ├── 05_salmon_index.sh
+│       ├── 06_snpeff_db.sh
+│       └── 07_clinvar.sh
 ├── main.nf                                 # Flujo de trabajo principal
-└── run.sh                                  # Script de ejecucion del pipeline
+├── run_local.sh                            # Ejecución local (desarrollo y pruebas)
+└── run_remote.sh                           # Ejecución desde versión publicada en GitHub
 ```

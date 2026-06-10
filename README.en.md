@@ -19,7 +19,8 @@ ARIEL integrates multiple bioinformatics tools for the detection and analysis of
 | **RaScALL** | Detection of fusions, SNVs, IGH fusions, focal deletions, and DUX4 (ALL-specialized) |
 | **Fungi** | Consensus of fusions detected by the methods above |
 | **Salmon** | Gene expression quantification |
-| **ExprClusters** | Sample clustering by expression (CRLF2, DUX4) |
+| **FreeBayes** | Variant calling (SNVs and indels) |
+| **SnpEff + SnpSift** | Functional variant annotation and ClinVar filtering |
 | **FusionSummary** | Final integrated results report |
 
 ## Requirements
@@ -29,14 +30,13 @@ ARIEL integrates multiple bioinformatics tools for the detection and analysis of
 
 ## Installation
 
-### 1. Build the Docker images
+### 1. Get the Docker images
+
+Images are available on Docker Hub and are pulled automatically when the pipeline runs. They can also be pulled manually:
 
 ```bash
-# Main image: STAR, Salmon, Arriba, FusionCatcher, Fungi
-bash docker/build_ariel.sh
-
-# RaScALL image
-bash docker/build_rascall.sh
+docker pull acerverat/ariel-env:latest
+docker pull acerverat/rascall:1.0
 ```
 
 ### 2. Prepare reference files
@@ -44,8 +44,12 @@ bash docker/build_rascall.sh
 `generaReferencias.sh` is the master script that runs the subscripts in `scripts/references/` in order. Each subscript checks whether its references are already installed before downloading, so it is safe to rerun without reinstalling existing data. If a step fails, only that subscript needs to be rerun.
 
 ```bash
-# Install all references
+# Install main references
 bash scripts/generaReferencias.sh /path/to/references
+
+# Steps 06 and 07 must be run separately:
+bash scripts/references/06_snpeff_db.sh /path/to/references
+bash scripts/references/07_clinvar.sh   /path/to/references
 
 # Or run a single step, for example:
 bash scripts/references/03_star_index.sh /path/to/references
@@ -58,6 +62,8 @@ bash scripts/references/03_star_index.sh /path/to/references
 | `03_star_index.sh` | STAR index (requires 01 and 02) |
 | `04_fusioncatcher_db.sh` | FusionCatcher database |
 | `05_salmon_index.sh` | Salmon index (built from Gencode v42 transcriptome) and `geneId_transcriptId_geneName.tsv` table |
+| `06_snpeff_db.sh` | SnpEff database (GRCh38.p14) |
+| `07_clinvar.sh` | ClinVar VCF (GRCh38) and MANE Select table for variant annotation |
 
 This creates `GRCh38_no_alt/` with:
 
@@ -66,6 +72,7 @@ GRCh38_no_alt/
 ├── cicero_references/               # Cicero and RNApeg references
 ├── fusioncatcher_db/                # FusionCatcher database
 ├── salmon_index/                    # Salmon index
+├── snpeff_db/                       # SnpEff database, ClinVar, and MANE Select
 ├── gencode.v42.annotation.gtf
 ├── gencode.v42.annotation.gff3
 ├── geneId_transcriptId_geneName.tsv # gene_id / transcript_id / gene_name table
@@ -74,11 +81,7 @@ GRCh38_no_alt/
 
 ### 3. Configure parameters
 
-```bash
-bash scripts/generaParams.sh
-```
-
-The script interactively prompts for paths and generates `config/params.yaml`. The file can also be edited directly.
+Copy `run_local.sh` or `run_remote.sh` to your working directory, fill in the paths marked with `<...>`, and run it. The script automatically generates the parameters file and launches the pipeline.
 
 ### SampleSheet
 
@@ -93,14 +96,11 @@ CA002	/path/to/CA002_R1.fastq.gz	/path/to/CA002_R2.fastq.gz
 ## Usage
 
 ```bash
-bash run.sh
-```
+# Local execution (development and testing)
+bash run_local.sh
 
-Any additional arguments are passed directly to Nextflow:
-
-```bash
-bash run.sh -resume
-bash run.sh -resume -with-trace
+# Execution from a published GitHub release
+bash run_remote.sh
 ```
 
 ## Parameters
@@ -109,13 +109,13 @@ bash run.sh -resume -with-trace
 |-----------|-------------|---------|
 | `resultsDir` | Output directory | — |
 | `runSampleSheet` | Path to the SampleSheet (TSV) | — |
-| `referenceDir` | References directory | — |
-| `tpmPanel` | Reference TPM table (gene panel) | — |
-| `workDir` | Nextflow work directory | — |
-| `method_counts` | Minimum number of methods required to call a fusion | `10` |
-| `supporting_reads` | Minimum supporting reads for a fusion | `3` |
+| `referenceDir` | References directory (`GRCh38_no_alt/`) | — |
 | `threadsSTAR` | Threads for STAR | `4` |
 | `threadsRascall` | Threads for RaScALL | `4` |
+| `threadsFungi` | Threads for Fungi | `15` |
+| `fungiFilterEnsembl` | Fungi Ensembl filters | `"same_gene,homologs"` |
+| `fungiFilterDb` | Fungi database filters | `"banned,paralog"` |
+| `fungiFilterMinCount` | Minimum read count for Fungi | `0` |
 
 ## Output structure
 
@@ -129,11 +129,16 @@ resultsDir/
 │   └── cicero/          # Fusions detected by Cicero
 ├── fungi/               # Fusion consensus (Fungi)
 ├── rascall/             # RaScALL results
-├── quantification/      # Expression quantification (Salmon)
-├── ExprClusters/        # Expression clustering results
-└── reports/
+├── variants/
+│   ├── freebayes/       # FreeBayes VCFs
+│   └── snpeff/          # SnpEff+SnpSift annotated VCFs
+├── qc/
+│   ├── beforeTrimm/     # MultiQC before trimming
+│   ├── afterTrimm/      # FastQC + Fastp + MultiQC after trimming
+│   └── trimmed/         # Trimmed reads (Fastp)
+└── reportes/
     ├── hallazgos_principales.csv  # Main fusions, subtypes, and breakpoints per sample
-    └── hallazgos_otros.csv        # Secondary fusions, SNVs, focal deletions, CRLF2/DUX4 expression
+    └── variantes_NM.tsv           # MANE Select variants with ClinVar classification
 ```
 
 ## Authors
@@ -147,29 +152,27 @@ resultsDir/
 ```
 ARIEL/
 ├── bin/
-│   ├── preExprCluster.R                    # Builds TPM matrix from Salmon quantifications
-│   ├── kmeans.R                            # k-means clustering per gene and boxplot generation
 │   ├── generaReporteHallazgosPrincipales.R # Main fusion report and RaScALL integration
-│   └── generaReporteHallazgosOtros.R       # Secondary fusions, SNVs, deletions, and expression report
+│   ├── generaReporteHallazgosOtros.R       # Secondary fusions, SNVs, and deletions report
+│   └── parse_vcf_freebayes.R               # MANE Select variants report with ClinVar classification
 ├── config/
-│   ├── nextflow.config                     # Infrastructure configuration (Docker, workDir)
-│   └── params.yaml                         # Workflow parameters (paths, threads, thresholds)
+│   └── params.yaml                         # Reference of available parameters
 ├── docker/
 │   ├── Dockerfile                          # Main image (ariel-env)
-│   ├── Rascall_Dockerfile                  # RaScALL image (rascall:1.0)
-│   ├── build_ariel.sh                      # Builds ariel-env
-│   └── build_rascall.sh                    # Builds rascall:1.0
+│   └── build_ariel.sh                      # Builds ariel-env
 ├── modules/
 │   └── modules.nf                          # Pipeline modules
 ├── scripts/
-│   ├── generaParams.sh                     # Interactive config/params.yaml generator
-│   ├── generaReferencias.sh                # Master reference installation script
-│   └── references/                         # Per-tool subscripts
+│   ├── generaReferencias.sh                # Master reference installation script (steps 01–05)
+│   └── references/
 │       ├── 01_cicero.sh
 │       ├── 02_gencode.sh
 │       ├── 03_star_index.sh
 │       ├── 04_fusioncatcher_db.sh
-│       └── 05_salmon_index.sh
+│       ├── 05_salmon_index.sh
+│       ├── 06_snpeff_db.sh
+│       └── 07_clinvar.sh
 ├── main.nf                                 # Main workflow
-└── run.sh                                  # Pipeline run script
+├── run_local.sh                            # Local execution (development and testing)
+└── run_remote.sh                           # Execution from a published GitHub release
 ```
